@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+* {
+	font-family: "martian-mono-variable", sans-serif;
+}
+
+nav * {
+	z-index: 100;
+}
+p {
+	font-variation-settings: "wdth" 75, "wght" 400;
+	font-style: normal;
+}
+
+h1 {
+	font-variation-settings: "wdth" 75, "wght" 600;
+	@apply md:text-[10em] text-[20vw];
+	line-height: 90%;
+	position: relative;
+}
+
+h2 {
+	@apply md:text-[2em] text-[4vw];
+	margin-top: 5px;
+	background: black;
+	color: white;
+	position: relative;
+	z-index: 50;
+}
+
