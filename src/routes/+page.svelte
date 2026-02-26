@@ -1,6 +1,7 @@
 <script lang="ts">
 	let { data } = $props();
 	import Icon from "@iconify/svelte";
+	import { marked } from "marked";
 
 	function preview(content: string, maxWords = 400) {
 		const words = content.split(/\s+/);
@@ -67,7 +68,9 @@ wide, but my main focus is on software engineering. <span class="underline font-
 				})}
 			</time>
 			<div class="relative mt-2">
-				<p>{preview(post.content)}</p>
+				<div class="prose">
+					{@html marked(preview(post.content))}
+				</div>
 				{#if hasMore}
 					<a href="/blog/{post.slug}" class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#eee] to-transparent flex items-end justify-center pb-2">
 						<span class="text-sm underline">Read more</span>
@@ -77,3 +80,73 @@ wide, but my main focus is on software engineering. <span class="underline font-
 		</article>
 	{/each}
 </div>
+
+<style>
+	.prose :global(h1) {
+		font-size: 1.5rem !important;
+		font-weight: 700;
+		margin-top: 1rem;
+		margin-bottom: 0.5rem;
+		line-height: 1.2;
+	}
+	.prose :global(h2) {
+		font-size: 1.25rem !important;
+		font-weight: 600;
+		margin-top: 1rem;
+		margin-bottom: 0.5rem;
+		background: none;
+		color: inherit;
+	}
+	.prose :global(h3) {
+		font-size: 1.1rem !important;
+		font-weight: 600;
+		margin-top: 0.75rem;
+		margin-bottom: 0.5rem;
+	}
+	.prose :global(h4) {
+		font-size: 1.1rem !important;
+		font-weight: 600;
+		margin-top: 0.75rem;
+		margin-bottom: 0.5rem;
+	}
+	.prose :global(p) {
+		margin-bottom: 0.75rem;
+		line-height: 1.6;
+	}
+	.prose :global(a) {
+		text-decoration: underline;
+	}
+	.prose :global(ul),
+	.prose :global(ol) {
+		margin-left: 1.5rem;
+		margin-bottom: 0.75rem;
+	}
+	.prose :global(ul) {
+		list-style-type: disc;
+	}
+	.prose :global(ol) {
+		list-style-type: decimal;
+	}
+	.prose :global(blockquote) {
+		border-left: 3px solid currentColor;
+		padding-left: 1rem;
+		font-style: italic;
+		opacity: 0.85;
+	}
+	.prose :global(code) {
+		background: rgba(0, 0, 0, 0.1);
+		padding: 0.15rem 0.3rem;
+		border-radius: 0.25rem;
+		font-size: 0.9em;
+	}
+	.prose :global(pre) {
+		background: rgba(0, 0, 0, 0.05);
+		padding: 0.75rem;
+		border-radius: 0.5rem;
+		overflow-x: auto;
+	}
+	.prose :global(pre code) {
+		background: none;
+		padding: 0;
+	}
+</style>

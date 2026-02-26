@@ -23,21 +23,30 @@
 <style>
 	/* Customize markdown styles here */
 	.prose :global(h1) {
-		font-size: 2rem;
+		font-size: 2rem !important;
 		font-weight: 700;
 		margin-top: 1.5rem;
 		margin-bottom: 0.5rem;
+		line-height: 1.2;
 	}
 	.prose :global(h2) {
-		font-size: 1.5rem;
+		font-size: 1.5rem !important;
 		font-weight: 600;
 		margin-top: 1.25rem;
 		margin-bottom: 0.5rem;
+		background: none;
+		color: inherit;
 	}
 	.prose :global(h3) {
-		font-size: 1.25rem;
+		font-size: 1.25rem !important;
 		font-weight: 600;
 		margin-top: 1rem;
+		margin-bottom: 0.5rem;
+	}
+	.prose :global(h4) {
+		font-size: 1.1rem !important;
+		font-weight: 600;
+		margin-top: 0.75rem;
 		margin-bottom: 0.5rem;
 	}
 	.prose :global(p) {
