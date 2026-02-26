@@ -5,6 +5,11 @@
 * {
 	font-family: "martian-mono-variable", sans-serif;
 }
+.dropshadow {
+	filter: drop-shadow(1px 1px 3px #00000099);
+}
+
+
 
 nav * {
 	z-index: 100;

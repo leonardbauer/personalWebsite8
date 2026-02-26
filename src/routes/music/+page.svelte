@@ -48,9 +48,10 @@
 		background-clip: text;
 		color: transparent;
 
-		transition: transform 400ms cubic-bezier(1,0,0,1.65), background 300ms cubic-bezier(.32,0,.53,1.48);
+		transition: transform 400ms cubic-bezier(1,0,0,1.65), background 100ms cubic-bezier(.32,0,.53,1.48);
 	}
 	.title:hover {
-		transform: scale(1.2);
+		transform: scale(1.2) translateX(120px);
+
 	}
 </style>
