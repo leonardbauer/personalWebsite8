@@ -32,6 +32,7 @@ export async function GET() {
   <link href="${SITE_URL}" rel="alternate" type="text/html"/>
   <id>tag:${SITE_URL.replace('https://', '')},2025:feed</id>
   <updated>${lastUpdated.toISOString()}</updated>
+  <icon>${SITE_URL}/favicon.png</icon>
   ${allPosts
 		.map(
 			(post) => `
