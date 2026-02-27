@@ -53,7 +53,9 @@ wide, but my main focus is on software engineering. <span class="underline font-
 <div class="lg:pr-60 xl:pr-96 my-4 thermal">
 	<h3 class="text-4xl font-black italic">blog:</h3>
 </div>
+<div class="mb-4">
 i try to figure out certain solutions instead of ranting about problems in this. i hope this inspires you :)
+</div>
 <div class="w-full flex flex-col gap-4">
 	{#each data.posts as post}
 		{@const hasMore = post.content.split(/\s+/).length > 200}
@@ -62,7 +64,7 @@ i try to figure out certain solutions instead of ranting about problems in this.
 			style="background-color: {$currentTheme.backgroundSecondary}; color: {$currentTheme.text};"
 		>
 			<a href="/blog/{post.slug}">
-				<h4 class="mb-2 lowercase">{post.title}</h4>
+				<h4 class="mb-2 lowercase mb-4">{post.title}</h4>
 			</a>
 			<time class="text-xs" style="color: {$currentTheme.textMuted};">
 				{new Date(post.createdAt).toLocaleDateString('en-US', {

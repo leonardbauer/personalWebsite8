@@ -9,7 +9,29 @@
 	const html = $derived(marked(data.post.content));
 	const shareUrl = $derived(`https://lnrdbr.com${$page.url.pathname}`);
 	const shareText = $derived(data.post.title);
-	const description = $derived(data.post.content.split(/\s+/).slice(0, 30).join(' ') + '...');
+
+	// Strip markdown formatting for description
+	function stripMarkdown(text: string): string {
+		return text
+			.replace(/!\[.*?\]\(.*?\)/g, '') // images
+			.replace(/\[([^\]]+)\]\(.*?\)/g, '$1') // links
+			.replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, '$1') // bold/italic
+			.replace(/`{1,3}[^`]*`{1,3}/g, '') // code
+			.replace(/^#{1,6}\s+/gm, '') // headings
+			.replace(/^[-*+]\s+/gm, '') // list items
+			.replace(/^>\s+/gm, '') // blockquotes
+			.replace(/\n+/g, ' ') // newlines
+			.trim();
+	}
+
+	// Extract first image from markdown, fallback to favicon
+	function extractImage(content: string): string {
+		const match = content.match(/!\[.*?\]\((.*?)\)/);
+		return match ? match[1] : 'https://lnrdbr.com/favicon.png';
+	}
+
+	const description = $derived(stripMarkdown(data.post.content).split(/\s+/).slice(0, 30).join(' ') + '...');
+	const ogImage = $derived(extractImage(data.post.content));
 </script>
 
 <svelte:head>
@@ -18,9 +40,11 @@
 	<meta property="og:url" content={shareUrl} />
 	<meta property="og:type" content="article" />
 	<meta property="og:site_name" content="Leonard Bauer" />
+	<meta property="og:image" content={ogImage} />
 	<meta name="twitter:card" content="summary" />
 	<meta name="twitter:title" content={data.post.title} />
 	<meta name="twitter:description" content={description} />
+	<meta name="twitter:image" content={ogImage} />
 </svelte:head>
 
 <div class="flex gap-8">
