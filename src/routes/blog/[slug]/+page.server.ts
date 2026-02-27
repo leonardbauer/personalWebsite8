@@ -1,13 +1,17 @@
 import { db } from '$lib/server/db';
 import { posts } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 
-export async function load({ params }) {
+export async function load({ params, setHeaders }) {
+	setHeaders({
+		'cache-control': 'public, max-age=3600, stale-while-revalidate=86400'
+	});
+
 	const [post] = await db
 		.select()
 		.from(posts)
-		.where(and(eq(posts.slug, params.slug), eq(posts.isPublic, true)))
+		.where(eq(posts.slug, params.slug))
 		.limit(1);
 
 	if (!post) {

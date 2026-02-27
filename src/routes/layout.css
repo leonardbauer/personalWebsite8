@@ -2,14 +2,26 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
+:root {
+	--color-shadow: rgba(0, 0, 0, 0.3);
+	--color-text: #000000;
+	--color-text-inverted: #ffffff;
+	--color-code-background: rgba(0, 0, 0, 0.1);
+	--color-background: #ffffff;
+}
+
 * {
 	font-family: "martian-mono-variable", sans-serif;
 }
-.dropshadow {
-	filter: drop-shadow(1px 1px 3px #00000099);
+
+html, body {
+	background-color: var(--color-background);
+	transition: background-color 0.3s;
 }
 
-
+.dropshadow {
+	filter: drop-shadow(1px 1px 3px var(--color-shadow));
+}
 
 nav * {
 	z-index: 100;
@@ -30,8 +42,8 @@ h1 {
 h2 {
 	@apply md:text-[2em] text-[4vw];
 	margin-top: 5px;
-	background: black;
-	color: white;
+	background: var(--color-text);
+	color: var(--color-text-inverted);
 	position: relative;
 	z-index: 50;
 }
@@ -44,6 +56,5 @@ h4 {
 }
 
 .highwidth {
-
 	font-variation-settings: "wdth" 900, "wght" 200;
 }

@@ -2,6 +2,7 @@
 	let { data } = $props();
 	import Icon from "@iconify/svelte";
 	import { marked } from "marked";
+	import { currentTheme } from "$lib/stores/theme";
 
 	function preview(content: string, maxWords = 400) {
 		const words = content.split(/\s+/);
@@ -52,15 +53,18 @@ wide, but my main focus is on software engineering. <span class="underline font-
 <div class="lg:pr-60 xl:pr-96 my-4 thermal">
 	<h3 class="text-4xl font-black italic">blog:</h3>
 </div>
-
+i try to figure out certain solutions instead of ranting about problems in this. i hope this inspires you :)
 <div class="w-full flex flex-col gap-4">
 	{#each data.posts as post}
 		{@const hasMore = post.content.split(/\s+/).length > 400}
-		<article class="bg-[#eee] p-5 drop-shadow-sm rounded-sm lg:w-[60%] w-full">
+		<article
+			class="p-5 drop-shadow-sm rounded-sm lg:w-[60%] w-full transition-colors duration-300"
+			style="background-color: {$currentTheme.backgroundSecondary}; color: {$currentTheme.text};"
+		>
 			<a href="/blog/{post.slug}">
 				<h4 class="mb-2 lowercase">{post.title}</h4>
 			</a>
-			<time class="text-xs opacity-70">
+			<time class="text-xs" style="color: {$currentTheme.textMuted};">
 				{new Date(post.createdAt).toLocaleDateString('en-US', {
 					year: 'numeric',
 					month: 'long',
@@ -72,7 +76,11 @@ wide, but my main focus is on software engineering. <span class="underline font-
 					{@html marked(preview(post.content))}
 				</div>
 				{#if hasMore}
-					<a href="/blog/{post.slug}" class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#eee] to-transparent flex items-end justify-center pb-2">
+					<a
+						href="/blog/{post.slug}"
+						class="absolute inset-x-0 bottom-0 h-24 flex items-end justify-center pb-2"
+						style="background: linear-gradient(to top, {$currentTheme.backgroundSecondary}, transparent);"
+					>
 						<span class="text-sm underline">Read more</span>
 					</a>
 				{/if}
@@ -82,44 +90,54 @@ wide, but my main focus is on software engineering. <span class="underline font-
 </div>
 
 <style>
+	.prose {
+		color: inherit;
+	}
 	.prose :global(h1) {
 		font-size: 1.5rem !important;
 		font-weight: 700;
 		margin-top: 1rem;
 		margin-bottom: 0.5rem;
 		line-height: 1.2;
+		color: inherit !important;
+		background: none !important;
 	}
 	.prose :global(h2) {
 		font-size: 1.25rem !important;
 		font-weight: 600;
 		margin-top: 1rem;
 		margin-bottom: 0.5rem;
-		background: none;
-		color: inherit;
+		background: none !important;
+		color: inherit !important;
 	}
 	.prose :global(h3) {
 		font-size: 1.1rem !important;
 		font-weight: 600;
 		margin-top: 0.75rem;
 		margin-bottom: 0.5rem;
+		color: inherit !important;
 	}
 	.prose :global(h4) {
 		font-size: 1.1rem !important;
 		font-weight: 600;
 		margin-top: 0.75rem;
 		margin-bottom: 0.5rem;
+		color: inherit !important;
 	}
 	.prose :global(p) {
 		margin-bottom: 0.75rem;
 		line-height: 1.6;
+		color: inherit;
 	}
 	.prose :global(a) {
 		text-decoration: underline;
+		color: inherit;
 	}
 	.prose :global(ul),
 	.prose :global(ol) {
 		margin-left: 1.5rem;
 		margin-bottom: 0.75rem;
+		color: inherit;
 	}
 	.prose :global(ul) {
 		list-style-type: disc;
@@ -127,23 +145,29 @@ wide, but my main focus is on software engineering. <span class="underline font-
 	.prose :global(ol) {
 		list-style-type: decimal;
 	}
+	.prose :global(li) {
+		color: inherit;
+	}
 	.prose :global(blockquote) {
 		border-left: 3px solid currentColor;
 		padding-left: 1rem;
 		font-style: italic;
 		opacity: 0.85;
+		color: inherit;
 	}
 	.prose :global(code) {
-		background: rgba(0, 0, 0, 0.1);
+		background: var(--color-code-background);
 		padding: 0.15rem 0.3rem;
 		border-radius: 0.25rem;
 		font-size: 0.9em;
+		color: inherit;
 	}
 	.prose :global(pre) {
-		background: rgba(0, 0, 0, 0.05);
+		background: var(--color-code-background);
 		padding: 0.75rem;
 		border-radius: 0.5rem;
 		overflow-x: auto;
+		color: inherit;
 	}
 	.prose :global(pre code) {
 		background: none;

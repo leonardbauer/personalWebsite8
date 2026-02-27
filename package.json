@@ -34,6 +34,8 @@
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
+		"@iconify-json/lucide": "^1.2.94",
+		"@iconify-json/simple-icons": "^1.2.71",
 		"@iconify/svelte": "^5.2.1",
 		"@neondatabase/serverless": "^1.0.2",
 		"marked": "^17.0.3"
