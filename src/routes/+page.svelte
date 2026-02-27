@@ -4,7 +4,7 @@
 	import { marked } from "marked";
 	import { currentTheme } from "$lib/stores/theme";
 
-	function preview(content: string, maxWords = 400) {
+	function preview(content: string, maxWords = 200) {
 		const words = content.split(/\s+/);
 		if (words.length <= maxWords) return content;
 		return words.slice(0, maxWords).join(' ') + '...';
@@ -56,7 +56,7 @@ wide, but my main focus is on software engineering. <span class="underline font-
 i try to figure out certain solutions instead of ranting about problems in this. i hope this inspires you :)
 <div class="w-full flex flex-col gap-4">
 	{#each data.posts as post}
-		{@const hasMore = post.content.split(/\s+/).length > 400}
+		{@const hasMore = post.content.split(/\s+/).length > 200}
 		<article
 			class="p-5 drop-shadow-sm rounded-sm lg:w-[60%] w-full transition-colors duration-300"
 			style="background-color: {$currentTheme.backgroundSecondary}; color: {$currentTheme.text};"

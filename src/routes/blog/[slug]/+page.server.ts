@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { posts } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 
 export async function load({ params, setHeaders }) {
@@ -17,6 +17,12 @@ export async function load({ params, setHeaders }) {
 	if (!post) {
 		throw error(404, 'Post not found');
 	}
+
+	// Increment view count (fire and forget)
+	db.update(posts)
+		.set({ viewCount: sql`${posts.viewCount} + 1` })
+		.where(eq(posts.slug, params.slug))
+		.execute();
 
 	return { post, title: post.title };
 }

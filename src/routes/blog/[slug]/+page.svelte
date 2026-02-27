@@ -1,25 +1,133 @@
 <script lang="ts">
 	import { marked } from 'marked';
 	import { currentTheme } from '$lib/stores/theme';
+	import { page } from '$app/stores';
+	import Icon from '@iconify/svelte';
 
 	let { data } = $props();
 
 	const html = $derived(marked(data.post.content));
+	const shareUrl = $derived(`https://lnrdbr.com${$page.url.pathname}`);
+	const shareText = $derived(data.post.title);
+	const description = $derived(data.post.content.split(/\s+/).slice(0, 30).join(' ') + '...');
 </script>
 
-<article class="max-w-3xl">
-	<h1 class="text-4xl font-black mb-4 md:mb-2 z-0 relative">{data.post.title}</h1>
-	<time class="text-sm z-10 relative p-1" style="background-color: {$currentTheme.background}; color: {$currentTheme.textMuted};">
-		{new Date(data.post.createdAt).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		})}
-	</time>
-	<div class="mt-6 prose">
-		{@html html}
-	</div>
-</article>
+<svelte:head>
+	<meta property="og:title" content={data.post.title} />
+	<meta property="og:description" content={description} />
+	<meta property="og:url" content={shareUrl} />
+	<meta property="og:type" content="article" />
+	<meta property="og:site_name" content="Leonard Bauer" />
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content={data.post.title} />
+	<meta name="twitter:description" content={description} />
+</svelte:head>
+
+<div class="flex gap-8">
+	<article class="max-w-3xl flex-1">
+		<h1 class="text-4xl font-black mb-4 md:mb-2 z-0 relative">{data.post.title}</h1>
+		<div class="flex items-center gap-4 flex-wrap p-1 z-10 relative" style="background-color: {$currentTheme.background}; ">
+			<time class="text-sm  " style="color: {$currentTheme.textMuted};">
+				{new Date(data.post.createdAt).toLocaleDateString('en-US', {
+					year: 'numeric',
+					month: 'long',
+					day: 'numeric'
+				})}
+			</time>
+			<span class="text-sm" style="color: {$currentTheme.textMuted};">
+				{data.post.viewCount} views
+			</span>
+			<div class="lg:hidden flex items-center gap-3 ml-auto">
+				<a
+					href="https://twitter.com/intent/tweet?url={encodeURIComponent(shareUrl)}&text={encodeURIComponent(shareText)}"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="hover:opacity-70 transition-opacity"
+					aria-label="Share on Twitter"
+				>
+					<Icon icon="simple-icons:x" width={20} />
+				</a>
+				<a
+					href="https://www.linkedin.com/sharing/share-offsite/?url={encodeURIComponent(shareUrl)}"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="hover:opacity-70 transition-opacity"
+					aria-label="Share on LinkedIn"
+				>
+					<Icon icon="simple-icons:linkedin" width={20} />
+				</a>
+				<button
+					onclick={() => navigator.clipboard.writeText(shareUrl)}
+					class="hover:opacity-70 transition-opacity"
+					aria-label="Copy link"
+				>
+					<Icon icon="lucide:link" width={20} />
+				</button>
+			</div>
+		</div>
+		<div class="mt-6 prose">
+			{@html html}
+		</div>
+	</article>
+
+	<aside class="hidden lg:flex flex-col gap-3 sticky top-20 h-fit">
+		<span class="text-xs" style="color: {$currentTheme.textMuted};">share</span>
+		<a
+			href="https://twitter.com/intent/tweet?url={encodeURIComponent(shareUrl)}&text={encodeURIComponent(shareText)}"
+			target="_blank"
+			rel="noopener noreferrer"
+			class="hover:opacity-70 transition-opacity"
+			aria-label="Share on Twitter"
+		>
+			<Icon icon="simple-icons:x" width={24} />
+		</a>
+		<a
+			href="https://www.linkedin.com/sharing/share-offsite/?url={encodeURIComponent(shareUrl)}"
+			target="_blank"
+			rel="noopener noreferrer"
+			class="hover:opacity-70 transition-opacity"
+			aria-label="Share on LinkedIn"
+		>
+			<Icon icon="simple-icons:linkedin" width={24} />
+		</a>
+		<button
+			onclick={() => navigator.clipboard.writeText(shareUrl)}
+			class="hover:opacity-70 transition-opacity text-left"
+			aria-label="Copy link"
+		>
+			<Icon icon="lucide:link" width={24} />
+		</button>
+	</aside>
+</div>
+
+<div class="lg:hidden mt-8 flex items-center gap-4">
+	<span class="text-xs" style="color: {$currentTheme.textMuted};">share</span>
+	<a
+		href="https://twitter.com/intent/tweet?url={encodeURIComponent(shareUrl)}&text={encodeURIComponent(shareText)}"
+		target="_blank"
+		rel="noopener noreferrer"
+		class="hover:opacity-70 transition-opacity"
+		aria-label="Share on Twitter"
+	>
+		<Icon icon="simple-icons:x" width={24} />
+	</a>
+	<a
+		href="https://www.linkedin.com/sharing/share-offsite/?url={encodeURIComponent(shareUrl)}"
+		target="_blank"
+		rel="noopener noreferrer"
+		class="hover:opacity-70 transition-opacity"
+		aria-label="Share on LinkedIn"
+	>
+		<Icon icon="simple-icons:linkedin" width={24} />
+	</a>
+	<button
+		onclick={() => navigator.clipboard.writeText(shareUrl)}
+		class="hover:opacity-70 transition-opacity"
+		aria-label="Copy link"
+	>
+		<Icon icon="lucide:link" width={24} />
+	</button>
+</div>
 
 <style>
 	/* Customize markdown styles here */
@@ -65,6 +173,14 @@
 	.prose :global(a) {
 		text-decoration: underline;
 		color: inherit;
+	}
+	.prose :global(strong) {
+		color: inherit;
+		font-weight: 700;
+	}
+	.prose :global(em) {
+		color: inherit;
+		font-style: italic;
 	}
 	.prose :global(ul), .prose :global(ol) {
 		margin-left: 1.5rem;
