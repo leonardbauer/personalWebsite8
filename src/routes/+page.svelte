@@ -1,12 +1,21 @@
 <script lang="ts">
 	let { data } = $props();
 	import Icon from "@iconify/svelte";
-	import { marked } from "marked";
-	import { currentTheme } from "$lib/stores/theme";
+		import { currentTheme } from "$lib/stores/theme";
 
 	function preview(content: string, maxWords = 100) {
-		const words = content.split(/\s+/);
-		if (words.length <= maxWords) return content;
+		const stripped = content
+			.replace(/!\[.*?\]\(.*?\)/g, '') // images
+			.replace(/\[([^\]]+)\]\(.*?\)/g, '$1') // links -> keep text
+			.replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, '$1') // bold/italic
+			.replace(/`{1,3}[^`]*`{1,3}/g, '') // code
+			.replace(/^#{1,6}\s+/gm, '') // headings
+			.replace(/^[-*+]\s+/gm, '') // list items
+			.replace(/^>\s+/gm, '') // blockquotes
+			.replace(/\n+/g, ' ') // newlines to spaces
+			.trim();
+		const words = stripped.split(/\s+/);
+		if (words.length <= maxWords) return stripped;
 		return words.slice(0, maxWords).join(" ") + "...";
 	}
 </script>
@@ -89,14 +98,14 @@ wide, but my main focus is on software engineering.<span
 				)}
 			</time>
 			<div class=" w-full mt-2 mb-4">
-				<div class="prose max-w-none">
-					{@html marked(preview(post.content))}
+				<div>
+					{preview(post.content)}
 				</div>
 				{#if hasMore}
 					<a
 						href="/blog/{post.slug}"
 						class="absolute inset-x-0 bottom-0 h-36 flex items-end justify-center "
-						style="background: linear-gradient(to top, {$currentTheme.textMuted}, transparent);"
+						style="background: linear-gradient(to top, {$currentTheme.backgroundSecondary}, transparent);"
 					>
 						<span class="text-sm underline pb-3" style="color: {$currentTheme.text}"
 							>Read more</span
