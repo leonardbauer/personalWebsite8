@@ -48,7 +48,7 @@
 </svelte:head>
 
 <article class="max-w-3xl">
-	<h1 class="text-4xl font-black mb-4 md:mb-2 z-0 relative">{data.post.title}</h1>
+	<h1 class="text-4xl font-black mb-4 md:mb-2 z-0 relative" style="font-size: min(10rem, 10vw);">{data.post.title}</h1>
 	<div class="flex items-center gap-4 flex-wrap p-1 z-10 relative" style="background-color: {$currentTheme.background}; ">
 		<time class="text-sm  " style="color: {$currentTheme.textMuted};">
 			{new Date(data.post.createdAt).toLocaleDateString('en-US', {
