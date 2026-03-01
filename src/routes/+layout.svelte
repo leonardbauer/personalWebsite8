@@ -13,6 +13,21 @@
 	<title>{$page.data.title ? `${$page.data.title} | ${siteName}` : siteName}</title>
 	<link rel="icon" href={favicon} />
 	<link rel="alternate" type="application/atom+xml" title={siteName} href="/posts.atom" />
+	{@html '<script type="application/ld+json">' + JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "Person",
+		"name": "Leonard Bauer",
+		"url": "https://lnrdbr.com",
+		"email": "leonard@lnrdbr.com",
+		"jobTitle": "Software Engineer",
+		"description": "Curious student passionate about software engineering, electronics, synthesizers, and complex systems.",
+		"sameAs": [
+			"https://www.linkedin.com/in/leonardbauer/",
+			"https://github.com/leonardbauer",
+			"https://pfharmer.bandcamp.com/",
+			"https://soundcloud.com/pfharmer"
+		]
+	}) + '<\/script>'}
 </svelte:head>
 <div
 	class="lg:px-30 sm:px-10 px-5 items-center pt-20 overflow-clip transition-colors duration-300"

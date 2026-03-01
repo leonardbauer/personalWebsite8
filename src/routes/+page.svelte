@@ -20,7 +20,7 @@
 	}
 </script>
 
-<h1 class="mb-3 dropshadow">leonard bauer</h1>
+<h1 class="mb-3 dropshadow lowercase">Leonard Bauer</h1>
 <h2 class="md:pl-10 pl-5 dropshadow">
 	<a href="mailto:leonard@lnrdbr.com">leonard[at]lnrdbr(dot)com</a>
 </h2>
