@@ -4,10 +4,10 @@
 	import { marked } from "marked";
 	import { currentTheme } from "$lib/stores/theme";
 
-	function preview(content: string, maxWords = 200) {
+	function preview(content: string, maxWords = 100) {
 		const words = content.split(/\s+/);
 		if (words.length <= maxWords) return content;
-		return words.slice(0, maxWords).join(' ') + '...';
+		return words.slice(0, maxWords).join(" ") + "...";
 	}
 </script>
 
@@ -16,13 +16,17 @@
 	<a href="mailto:leonard@lnrdbr.com">leonard[at]lnrdbr(dot)com</a>
 </h2>
 <div class="p-2 pt-1">
-<span class="text-xs italic highwidth">socials</span>
+	<span class="text-xs italic highwidth">socials</span>
 	<div class="flex gap-4 mt-1">
 		<a
 			target="_blank"
 			href="https://www.linkedin.com/in/leonardbauer/"
 			class="hover:text-[#0077B5]"
-			><Icon width="32" icon="simple-icons:linkedin" class="" /></a
+			><Icon
+				width="32"
+				icon="simple-icons:linkedin"
+				class=""
+			/></a
 		>
 		<a
 			target="_blank"
@@ -48,42 +52,55 @@
 I am a curious student. From a very young age, I loved to explore and tinker with
 computers, electronics, synthesizers, and other complex systems. These days, I am
 passionate about writing and learning about many fields. My interests are spread
-wide, but my main focus is on software engineering. <span class="underline font-bold">Feel free to reach out</span>. [this text is written by a real human aka. myself]
+wide, but my main focus is on software engineering.<span
+	class="underline font-bold">Feel free to reach out</span
+>. [this text is written by a real human aka. myself]
 
 <div class="lg:pr-60 xl:pr-96 my-4 thermal">
 	<h3 class="text-4xl font-black italic">blog:</h3>
 </div>
 <div class="mb-4">
-i try to figure out certain solutions instead of ranting about problems in this. i hope this inspires you :)
+	i try to figure out certain solutions instead of ranting about problems
+	in this. i hope this inspires you :)
 </div>
 <div class="w-full flex flex-col gap-4">
 	{#each data.posts as post}
-		{@const hasMore = post.content.split(/\s+/).length > 200}
+		{@const hasMore = post.content.split(/\s+/).length > 100}
 		<article
-			class="p-5 drop-shadow-sm rounded-sm lg:w-[60%] w-full transition-colors duration-300"
+			class="p-5 drop-shadow-sm rounded-sm overflow-clip lg:w-[60%] w-full transition-colors duration-300"
 			style="background-color: {$currentTheme.backgroundSecondary}; color: {$currentTheme.text};"
 		>
 			<a href="/blog/{post.slug}">
-				<h4 class="mb-2 lowercase mb-4">{post.title}</h4>
+				<h4 class="mb-2 lowercase mb-4">
+					{post.title}
+				</h4>
 			</a>
-			<time class="text-xs" style="color: {$currentTheme.textMuted};">
-				{new Date(post.createdAt).toLocaleDateString('en-US', {
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric'
-				})}
+			<time
+				class="text-xs"
+				style="color: {$currentTheme.textMuted};"
+			>
+				{new Date(post.createdAt).toLocaleDateString(
+					"en-US",
+					{
+						year: "numeric",
+						month: "long",
+						day: "numeric",
+					},
+				)}
 			</time>
-			<div class="relative mt-2">
-				<div class="prose">
+			<div class=" w-full mt-2 mb-4">
+				<div class="prose max-w-none">
 					{@html marked(preview(post.content))}
 				</div>
 				{#if hasMore}
 					<a
 						href="/blog/{post.slug}"
-						class="absolute inset-x-0 bottom-0 h-24 flex items-end justify-center pb-2"
-						style="background: linear-gradient(to top, {$currentTheme.backgroundSecondary}, transparent);"
+						class="absolute inset-x-0 bottom-0 h-36 flex items-end justify-center "
+						style="background: linear-gradient(to top, {$currentTheme.textMuted}, transparent);"
 					>
-						<span class="text-sm underline">Read more</span>
+						<span class="text-sm underline pb-3" style="color: {$currentTheme.text}"
+							>Read more</span
+						>
 					</a>
 				{/if}
 			</div>
@@ -94,6 +111,7 @@ i try to figure out certain solutions instead of ranting about problems in this.
 <style>
 	.prose {
 		color: inherit;
+		width: 100%;
 	}
 	.prose :global(h1) {
 		font-size: 1.5rem !important;
@@ -106,7 +124,7 @@ i try to figure out certain solutions instead of ranting about problems in this.
 	}
 	.prose :global(h2) {
 		font-size: 1.25rem !important;
-		font-weight: 600;
+		font-weight: 300;
 		margin-top: 1rem;
 		margin-bottom: 0.5rem;
 		background: none !important;

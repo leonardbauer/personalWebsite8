@@ -47,82 +47,81 @@
 	<meta name="twitter:image" content={ogImage} />
 </svelte:head>
 
-<div class="flex gap-8">
-	<article class="max-w-3xl flex-1">
-		<h1 class="text-4xl font-black mb-4 md:mb-2 z-0 relative">{data.post.title}</h1>
-		<div class="flex items-center gap-4 flex-wrap p-1 z-10 relative" style="background-color: {$currentTheme.background}; ">
-			<time class="text-sm  " style="color: {$currentTheme.textMuted};">
-				{new Date(data.post.createdAt).toLocaleDateString('en-US', {
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric'
-				})}
-			</time>
-			<span class="text-sm" style="color: {$currentTheme.textMuted};">
-				{data.post.viewCount} views
-			</span>
-			<div class="lg:hidden flex items-center gap-3 ml-auto">
-				<a
-					href="https://twitter.com/intent/tweet?url={encodeURIComponent(shareUrl)}&text={encodeURIComponent(shareText)}"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="hover:opacity-70 transition-opacity"
-					aria-label="Share on Twitter"
-				>
-					<Icon icon="simple-icons:x" width={20} />
-				</a>
-				<a
-					href="https://www.linkedin.com/sharing/share-offsite/?url={encodeURIComponent(shareUrl)}"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="hover:opacity-70 transition-opacity"
-					aria-label="Share on LinkedIn"
-				>
-					<Icon icon="simple-icons:linkedin" width={20} />
-				</a>
-				<button
-					onclick={() => navigator.clipboard.writeText(shareUrl)}
-					class="hover:opacity-70 transition-opacity"
-					aria-label="Copy link"
-				>
-					<Icon icon="lucide:link" width={20} />
-				</button>
-			</div>
+<article class="max-w-3xl">
+	<h1 class="text-4xl font-black mb-4 md:mb-2 z-0 relative">{data.post.title}</h1>
+	<div class="flex items-center gap-4 flex-wrap p-1 z-10 relative" style="background-color: {$currentTheme.background}; ">
+		<time class="text-sm  " style="color: {$currentTheme.textMuted};">
+			{new Date(data.post.createdAt).toLocaleDateString('en-US', {
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric'
+			})}
+		</time>
+		<span class="text-sm" style="color: {$currentTheme.textMuted};">
+			{data.post.viewCount} views
+		</span>
+		<div class="lg:hidden flex items-center gap-3 ml-auto">
+			<a
+				href="https://twitter.com/intent/tweet?url={encodeURIComponent(shareUrl)}&text={encodeURIComponent(shareText)}"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="hover:opacity-70 transition-opacity"
+				aria-label="Share on Twitter"
+			>
+				<Icon icon="simple-icons:x" width={20} />
+			</a>
+			<a
+				href="https://www.linkedin.com/sharing/share-offsite/?url={encodeURIComponent(shareUrl)}"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="hover:opacity-70 transition-opacity"
+				aria-label="Share on LinkedIn"
+			>
+				<Icon icon="simple-icons:linkedin" width={20} />
+			</a>
+			<button
+				onclick={() => navigator.clipboard.writeText(shareUrl)}
+				class="hover:opacity-70 transition-opacity"
+				aria-label="Copy link"
+			>
+				<Icon icon="lucide:link" width={20} />
+			</button>
 		</div>
-		<div class="mt-6 prose">
+	</div>
+	<div class="flex gap-8 mt-6">
+		<div class="prose flex-1">
 			{@html html}
 		</div>
-	</article>
-
-	<aside class="hidden lg:flex flex-col gap-3 sticky top-20 h-fit">
-		<span class="text-xs" style="color: {$currentTheme.textMuted};">share</span>
-		<a
-			href="https://twitter.com/intent/tweet?url={encodeURIComponent(shareUrl)}&text={encodeURIComponent(shareText)}"
-			target="_blank"
-			rel="noopener noreferrer"
-			class="hover:opacity-70 transition-opacity"
-			aria-label="Share on Twitter"
-		>
-			<Icon icon="simple-icons:x" width={24} />
-		</a>
-		<a
-			href="https://www.linkedin.com/sharing/share-offsite/?url={encodeURIComponent(shareUrl)}"
-			target="_blank"
-			rel="noopener noreferrer"
-			class="hover:opacity-70 transition-opacity"
-			aria-label="Share on LinkedIn"
-		>
-			<Icon icon="simple-icons:linkedin" width={24} />
-		</a>
-		<button
-			onclick={() => navigator.clipboard.writeText(shareUrl)}
-			class="hover:opacity-70 transition-opacity text-left"
-			aria-label="Copy link"
-		>
-			<Icon icon="lucide:link" width={24} />
-		</button>
-	</aside>
-</div>
+		<aside class="hidden lg:flex flex-col gap-3 sticky top-20 h-fit">
+			<span class="text-xs" style="color: {$currentTheme.textMuted};">share</span>
+			<a
+				href="https://twitter.com/intent/tweet?url={encodeURIComponent(shareUrl)}&text={encodeURIComponent(shareText)}"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="hover:opacity-70 transition-opacity"
+				aria-label="Share on Twitter"
+			>
+				<Icon icon="simple-icons:x" width={24} />
+			</a>
+			<a
+				href="https://www.linkedin.com/sharing/share-offsite/?url={encodeURIComponent(shareUrl)}"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="hover:opacity-70 transition-opacity"
+				aria-label="Share on LinkedIn"
+			>
+				<Icon icon="simple-icons:linkedin" width={24} />
+			</a>
+			<button
+				onclick={() => navigator.clipboard.writeText(shareUrl)}
+				class="hover:opacity-70 transition-opacity text-left"
+				aria-label="Copy link"
+			>
+				<Icon icon="lucide:link" width={24} />
+			</button>
+		</aside>
+	</div>
+</article>
 
 <div class="lg:hidden mt-8 flex items-center gap-4">
 	<span class="text-xs" style="color: {$currentTheme.textMuted};">share</span>
