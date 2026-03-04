@@ -1,4 +1,4 @@
-import { db } from '$lib/server/db';
+import { getDb } from '$lib/server/db';
 import { posts } from '$lib/server/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
@@ -8,6 +8,7 @@ export async function load({ params, setHeaders }) {
 		'cache-control': 'public, max-age=3600, stale-while-revalidate=86400'
 	});
 
+	const db = getDb();
 	const [post] = await db
 		.select()
 		.from(posts)

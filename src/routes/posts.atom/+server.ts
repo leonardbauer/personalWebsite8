@@ -1,4 +1,4 @@
-import { db } from '$lib/server/db';
+import { getDb } from '$lib/server/db';
 import { posts } from '$lib/server/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { marked } from 'marked';
@@ -17,7 +17,7 @@ function escapeXml(str: string): string {
 }
 
 export async function GET() {
-	const allPosts = await db
+	const allPosts = await getDb()
 		.select()
 		.from(posts)
 		.where(eq(posts.isPublic, true))
