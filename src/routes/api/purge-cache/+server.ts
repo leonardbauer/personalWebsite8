@@ -1,7 +1,8 @@
-import { CLOUDFLARE_ZONE_ID, CLOUDFLARE_API_TOKEN } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { json, error } from '@sveltejs/kit';
 
 export async function POST({ request }) {
+	const { CLOUDFLARE_ZONE_ID, CLOUDFLARE_API_TOKEN } = env;
 	if (!CLOUDFLARE_ZONE_ID || !CLOUDFLARE_API_TOKEN) {
 		throw error(500, 'Cloudflare credentials not configured');
 	}
