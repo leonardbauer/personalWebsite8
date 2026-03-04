@@ -1266,15 +1266,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/adapter-auto@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "@sveltejs/adapter-auto@npm:7.0.0"
-  peerDependencies:
-    "@sveltejs/kit": ^2.0.0
-  checksum: 10c0/928393d4e366a0094bec5e09c70e44c3c7b5f17687f1735f71eb305e1ae640c64cd9f7d8f80d8b31dcaa235ae2b07e0f021a9204b5cec895d5bd8035064c9195
-  languageName: node
-  linkType: hard
-
 "@sveltejs/adapter-cloudflare@npm:^7.2.8":
   version: 7.2.8
   resolution: "@sveltejs/adapter-cloudflare@npm:7.2.8"
@@ -2738,7 +2729,6 @@ __metadata:
     "@iconify-json/simple-icons": "npm:^1.2.71"
     "@iconify/svelte": "npm:^5.2.1"
     "@neondatabase/serverless": "npm:^1.0.2"
-    "@sveltejs/adapter-auto": "npm:^7.0.0"
     "@sveltejs/adapter-cloudflare": "npm:^7.2.8"
     "@sveltejs/kit": "npm:^2.50.2"
     "@sveltejs/vite-plugin-svelte": "npm:^6.2.4"
