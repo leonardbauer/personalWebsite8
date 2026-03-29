@@ -38,6 +38,7 @@
 		"@iconify-json/simple-icons": "^1.2.71",
 		"@iconify/svelte": "^5.2.1",
 		"@neondatabase/serverless": "^1.0.2",
-		"marked": "^17.0.3"
+		"marked": "^17.0.3",
+		"posthog-js": "^1.364.2"
 	}
 }
