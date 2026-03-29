@@ -9,5 +9,5 @@ export async function load() {
 		.where(eq(posts.isPublic, true))
 		.orderBy(desc(posts.createdAt));
 
-	return { posts: allPosts, title: '' };
+	return { posts: allPosts, title: 'Software Engineer, Musician & Writer' };
 }

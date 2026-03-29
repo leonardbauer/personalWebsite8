@@ -20,7 +20,20 @@
 	}
 </script>
 
-<h1 class="mb-3 dropshadow lowercase">Leonard Bauer</h1>
+<svelte:head>
+	<meta property="og:title" content="Leonard Bauer — Software Engineer, Musician & Writer" />
+	<meta property="og:description" content="Curious student passionate about software engineering, music production, and writing. Explore blog posts, projects, and music." />
+	<meta property="og:url" content="https://lnrdbr.com" />
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content="Leonard Bauer" />
+	<meta property="og:image" content="https://lnrdbr.com/favicon.png" />
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="Leonard Bauer — Software Engineer, Musician & Writer" />
+	<meta name="twitter:description" content="Curious student passionate about software engineering, music production, and writing. Explore blog posts, projects, and music." />
+	<meta name="twitter:image" content="https://lnrdbr.com/favicon.png" />
+</svelte:head>
+
+<h1 class="mb-3 dropshadow lowercase">Leonard Bauer <span class="hidden">— Software Engineer, Musician & Writer</span></h1>
 <h2 class="md:pl-10 pl-5 dropshadow">
 	<a href="mailto:leonard@lnrdbr.com">leonard[at]lnrdbr(dot)com</a>
 </h2>
@@ -61,8 +74,17 @@
 I am a curious student. From a very young age, I loved to explore and tinker with
 computers, electronics, synthesizers, and other complex systems. These days, I am
 passionate about writing and learning about many fields. My interests are spread
-wide, but my main focus is on software engineering.<span
-	class="underline font-bold">Feel free to reach out</span
+wide, but my main focus is on software engineering.
+<br /><br />
+I spend most of my time building software — from web apps and developer tools to
+small experiments that scratch an itch. You can check out some of the things I have
+been working on over on my <a href="/projects" class="underline">projects page</a>.
+When I am not coding, I am usually making music. I produce electronic tracks and
+experiment with sound design, and you can <a href="/music" class="underline">listen to my music here</a>.
+<br /><br />
+On this site you will find my blog where I write about technical topics, ideas I am
+exploring, and the occasional creative tangent. I try to figure out solutions instead
+of ranting about problems. <span class="underline font-bold">Feel free to reach out</span
 >. [this text is written by a real human aka. myself]
 
 <div class="lg:pr-60 xl:pr-96 my-4 thermal">
@@ -108,7 +130,7 @@ wide, but my main focus is on software engineering.<span
 						style="background: linear-gradient(to top, {$currentTheme.backgroundSecondary}, transparent);"
 					>
 						<span class="text-sm underline pb-3" style="color: {$currentTheme.text}"
-							>Read more</span
+							>Read full post: {post.title}</span
 						>
 					</a>
 				{/if}
