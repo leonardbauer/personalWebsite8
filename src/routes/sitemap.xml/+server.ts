@@ -4,8 +4,6 @@ import { eq } from 'drizzle-orm';
 
 const SITE_URL = 'https://lnrdbr.com';
 
-export const prerender = true;
-
 export async function GET() {
 	const publicPosts = await db
 		.select({ slug: posts.slug, updatedAt: posts.updatedAt })
