@@ -4,8 +4,7 @@ import { browser } from '$app/environment';
 export const load = async () => {
 	if (browser) {
 		posthog.init('phc_PCFLey0AmADF6vF05aDfqgopF07CPEv6dp1eLrBak5q', {
-			api_host: '/ingest',
-			ui_host: 'https://eu.posthog.com',
+			api_host: 'https://in.leonardbauer.com',
 			defaults: '2026-01-30'
 		});
 	}
