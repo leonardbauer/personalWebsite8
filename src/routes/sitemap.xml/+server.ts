@@ -1,11 +1,11 @@
-import { getDb } from '$lib/server/db';
+import { db } from '$lib/server/db';
 import { posts } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 const SITE_URL = 'https://lnrdbr.com';
 
 export async function GET() {
-	const publicPosts = await getDb()
+	const publicPosts = await db
 		.select({ slug: posts.slug, updatedAt: posts.updatedAt })
 		.from(posts)
 		.where(eq(posts.isPublic, true));
