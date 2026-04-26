@@ -1,18 +1,24 @@
 <script lang="ts">
 	let { data } = $props();
-	import Icon from "@iconify/svelte";
-		import { currentTheme } from "$lib/stores/theme";
+	import Icon from "@iconify/svelte/dist/OfflineIcon.svelte";
+	import {
+		linkedinIcon,
+		githubIcon,
+		bandcampIcon,
+		soundcloudIcon,
+	} from "$lib/icons";
+	import { currentTheme } from "$lib/stores/theme";
 
 	function preview(content: string, maxWords = 100) {
 		const stripped = content
-			.replace(/!\[.*?\]\(.*?\)/g, '') // images
-			.replace(/\[([^\]]+)\]\(.*?\)/g, '$1') // links -> keep text
-			.replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, '$1') // bold/italic
-			.replace(/`{1,3}[^`]*`{1,3}/g, '') // code
-			.replace(/^#{1,6}\s+/gm, '') // headings
-			.replace(/^[-*+]\s+/gm, '') // list items
-			.replace(/^>\s+/gm, '') // blockquotes
-			.replace(/\n+/g, ' ') // newlines to spaces
+			.replace(/!\[.*?\]\(.*?\)/g, "") // images
+			.replace(/\[([^\]]+)\]\(.*?\)/g, "$1") // links -> keep text
+			.replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, "$1") // bold/italic
+			.replace(/`{1,3}[^`]*`{1,3}/g, "") // code
+			.replace(/^#{1,6}\s+/gm, "") // headings
+			.replace(/^[-*+]\s+/gm, "") // list items
+			.replace(/^>\s+/gm, "") // blockquotes
+			.replace(/\n+/g, " ") // newlines to spaces
 			.trim();
 		const words = stripped.split(/\s+/);
 		if (words.length <= maxWords) return stripped;
@@ -21,19 +27,35 @@
 </script>
 
 <svelte:head>
-	<meta property="og:title" content="Leonard Bauer — Software Engineer, Musician & Writer" />
-	<meta property="og:description" content="Curious student passionate about software engineering, music production, and writing. Explore blog posts, projects, and music." />
+	<meta
+		property="og:title"
+		content="Leonard Bauer — Software Engineer, Musician & Writer"
+	/>
+	<meta
+		property="og:description"
+		content="Curious student passionate about software engineering, music production, and writing. Explore blog posts, projects, and music."
+	/>
 	<meta property="og:url" content="https://lnrdbr.com" />
 	<meta property="og:type" content="website" />
 	<meta property="og:site_name" content="Leonard Bauer" />
 	<meta property="og:image" content="https://lnrdbr.com/favicon.png" />
 	<meta name="twitter:card" content="summary" />
-	<meta name="twitter:title" content="Leonard Bauer — Software Engineer, Musician & Writer" />
-	<meta name="twitter:description" content="Curious student passionate about software engineering, music production, and writing. Explore blog posts, projects, and music." />
+	<meta
+		name="twitter:title"
+		content="Leonard Bauer — Software Engineer, Musician & Writer"
+	/>
+	<meta
+		name="twitter:description"
+		content="Curious student passionate about software engineering, music production, and writing. Explore blog posts, projects, and music."
+	/>
 	<meta name="twitter:image" content="https://lnrdbr.com/favicon.png" />
 </svelte:head>
 
-<h1 class="mb-3 dropshadow lowercase">Leonard Bauer <span class="hidden">— Software Engineer, Musician & Writer</span></h1>
+<h1 class="mb-3 dropshadow lowercase">
+	Leonard Bauer <span class="hidden"
+		>— Software Engineer, Musician & Writer</span
+	>
+</h1>
 <h2 class="md:pl-10 pl-5 dropshadow">
 	<a href="mailto:leonard@lnrdbr.com">leonard[at]lnrdbr(dot)com</a>
 </h2>
@@ -44,32 +66,30 @@
 			target="_blank"
 			href="https://www.linkedin.com/in/leonardbauer/"
 			class="hover:text-[#0077B5]"
-			><Icon
-				width="32"
-				icon="simple-icons:linkedin"
-				class=""
-			/></a
+			><Icon width="32" icon={linkedinIcon} /></a
 		>
 		<a
 			target="_blank"
 			href="https://github.com/leonardbauer"
 			class="hover:text-[#0FBF3E]"
-			><Icon width="32" icon="simple-icons:github" />
+			><Icon width="32" icon={githubIcon} />
 		</a>
 		<a
 			target="_blank"
 			href="https://pfharmer.bandcamp.com/"
 			class="hover:text-[#1DA0C3]"
-			><Icon width="32" icon="simple-icons:bandcamp" /></a
+			><Icon width="32" icon={bandcampIcon} /></a
 		>
 		<a
 			target="_blank"
 			href="https://soundcloud.com/pfharmer"
 			class="hover:text-[#FF5500]"
-			><Icon width="32" icon="simple-icons:soundcloud" />
+			><Icon width="32" icon={soundcloudIcon} />
 		</a>
 	</div>
 </div>
+<a href="https://ring.liampas.ca/left">left</a>
+<a href="https://ring.liampas.ca/right">right</a>
 <h3 class="text-4xl font-black italic">about me:</h3>
 I am a curious student. From a very young age, I loved to explore and tinker with
 computers, electronics, synthesizers, and other complex systems. These days, I am
@@ -78,14 +98,17 @@ wide, but my main focus is on software engineering.
 <br /><br />
 I spend most of my time building software — from web apps and developer tools to
 small experiments that scratch an itch. You can check out some of the things I have
-been working on over on my <a href="/projects" class="underline">projects page</a>.
-When I am not coding, I am usually making music. I produce electronic tracks and
-experiment with sound design, and you can <a href="/music" class="underline">listen to my music here</a>.
+been working on over on my
+<a href="/projects" class="underline">projects page</a>. When I am not coding, I
+am usually making music. I produce electronic tracks and experiment with sound
+design, and you can
+<a href="/music" class="underline">listen to my music here</a>.
 <br /><br />
-On this site you will find my blog where I write about technical topics, ideas I am
-exploring, and the occasional creative tangent. I try to figure out solutions instead
-of ranting about problems. <span class="underline font-bold">Feel free to reach out</span
->. [this text is written by a real human aka. myself]
+On this site you will find my blog where I write about technical topics, ideas I
+am exploring, and the occasional creative tangent. I try to figure out solutions
+instead of ranting about problems.
+<span class="underline font-bold">Feel free to reach out</span>. [this text is
+written by a real human aka. myself]
 
 <div class="lg:pr-60 xl:pr-96 my-4 thermal">
 	<h3 class="text-4xl font-black italic">blog:</h3>
@@ -98,10 +121,13 @@ of ranting about problems. <span class="underline font-bold">Feel free to reach 
 	{#each data.posts as post}
 		{@const hasMore = post.content.split(/\s+/).length > 100}
 		<article
-			class="p-5 drop-shadow-sm rounded-sm overflow-clip lg:w-[60%] w-full transition-colors duration-300"
+			class="relative p-5 drop-shadow-sm rounded-sm overflow-clip lg:w-[60%] w-full transition-colors duration-300 cursor-pointer"
 			style="background-color: {$currentTheme.backgroundSecondary}; color: {$currentTheme.text};"
 		>
-			<a href="/blog/{post.slug}">
+			<a
+				href="/blog/{post.slug}"
+				class="after:absolute after:inset-0 after:content-['']"
+			>
 				<h4 class="mb-2 lowercase mb-4">
 					{post.title}
 				</h4>
@@ -124,15 +150,16 @@ of ranting about problems. <span class="underline font-bold">Feel free to reach 
 					{preview(post.content)}
 				</div>
 				{#if hasMore}
-					<a
-						href="/blog/{post.slug}"
-						class="absolute inset-x-0 bottom-0 h-36 flex items-end justify-center "
+					<div
+						class="pointer-events-none absolute inset-x-0 bottom-0 h-36 flex items-end justify-center"
 						style="background: linear-gradient(to top, {$currentTheme.backgroundSecondary}, transparent);"
 					>
-						<span class="text-sm underline pb-3" style="color: {$currentTheme.text}"
+						<span
+							class="text-sm underline pb-3"
+							style="color: {$currentTheme.text}"
 							>Read full post: {post.title}</span
 						>
-					</a>
+					</div>
 				{/if}
 			</div>
 		</article>
