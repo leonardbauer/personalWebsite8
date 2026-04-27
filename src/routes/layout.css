@@ -14,7 +14,7 @@
 	font-family: "martian-mono-variable", sans-serif;
 }
 
-html, body {
+html {
 	background-color: var(--color-background);
 	transition: background-color 0.3s;
 }

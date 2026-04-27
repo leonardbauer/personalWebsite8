@@ -2,7 +2,8 @@
 	import { marked } from 'marked';
 	import { currentTheme } from '$lib/stores/theme';
 	import { page } from '$app/stores';
-	import Icon from '@iconify/svelte';
+	import Icon from '@iconify/svelte/dist/OfflineIcon.svelte';
+	import { xIcon, linkedinIcon, linkIcon } from '$lib/icons';
 
 	let { data } = $props();
 
@@ -68,7 +69,7 @@
 				class="hover:opacity-70 transition-opacity"
 				aria-label="Share on Twitter"
 			>
-				<Icon icon="simple-icons:x" width={20} />
+				<Icon icon={xIcon} width={20} />
 			</a>
 			<a
 				href="https://www.linkedin.com/sharing/share-offsite/?url={encodeURIComponent(shareUrl)}"
@@ -77,14 +78,14 @@
 				class="hover:opacity-70 transition-opacity"
 				aria-label="Share on LinkedIn"
 			>
-				<Icon icon="simple-icons:linkedin" width={20} />
+				<Icon icon={linkedinIcon} width={20} />
 			</a>
 			<button
 				onclick={() => navigator.clipboard.writeText(shareUrl)}
 				class="hover:opacity-70 transition-opacity"
 				aria-label="Copy link"
 			>
-				<Icon icon="lucide:link" width={20} />
+				<Icon icon={linkIcon} width={20} />
 			</button>
 		</div>
 	</div>
@@ -101,7 +102,7 @@
 				class="hover:opacity-70 transition-opacity"
 				aria-label="Share on Twitter"
 			>
-				<Icon icon="simple-icons:x" width={24} />
+				<Icon icon={xIcon} width={24} />
 			</a>
 			<a
 				href="https://www.linkedin.com/sharing/share-offsite/?url={encodeURIComponent(shareUrl)}"
@@ -110,14 +111,14 @@
 				class="hover:opacity-70 transition-opacity"
 				aria-label="Share on LinkedIn"
 			>
-				<Icon icon="simple-icons:linkedin" width={24} />
+				<Icon icon={linkedinIcon} width={24} />
 			</a>
 			<button
 				onclick={() => navigator.clipboard.writeText(shareUrl)}
 				class="hover:opacity-70 transition-opacity text-left"
 				aria-label="Copy link"
 			>
-				<Icon icon="lucide:link" width={24} />
+				<Icon icon={linkIcon} width={24} />
 			</button>
 		</aside>
 	</div>
@@ -132,7 +133,7 @@
 		class="hover:opacity-70 transition-opacity"
 		aria-label="Share on Twitter"
 	>
-		<Icon icon="simple-icons:x" width={24} />
+		<Icon icon={xIcon} width={24} />
 	</a>
 	<a
 		href="https://www.linkedin.com/sharing/share-offsite/?url={encodeURIComponent(shareUrl)}"
@@ -141,14 +142,14 @@
 		class="hover:opacity-70 transition-opacity"
 		aria-label="Share on LinkedIn"
 	>
-		<Icon icon="simple-icons:linkedin" width={24} />
+		<Icon icon={linkedinIcon} width={24} />
 	</a>
 	<button
 		onclick={() => navigator.clipboard.writeText(shareUrl)}
 		class="hover:opacity-70 transition-opacity"
 		aria-label="Copy link"
 	>
-		<Icon icon="lucide:link" width={24} />
+		<Icon icon={linkIcon} width={24} />
 	</button>
 </div>
 

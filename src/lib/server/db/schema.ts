@@ -17,3 +17,14 @@ export const projects = pgTable('projects', {
 	title: text('title').notNull(),
 	content: text('content').notNull()
 });
+
+export const songs = pgTable('songs', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	slug: text('slug').unique().notNull(),
+	title: text('title').notNull(),
+	src: text('src').notNull(),
+	color: text('color'),
+	bpm: integer('bpm'),
+	midi: text('midi'),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});

@@ -88,8 +88,10 @@
 		</a>
 	</div>
 </div>
+
 <a href="https://ring.liampas.ca/left">left</a>
 <a href="https://ring.liampas.ca/right">right</a>
+
 <h3 class="text-4xl font-black italic">about me:</h3>
 I am a curious student. From a very young age, I loved to explore and tinker with
 computers, electronics, synthesizers, and other complex systems. These days, I am
