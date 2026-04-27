@@ -14,7 +14,10 @@ class Player {
 	loading = $state<string | null>(null);
 	position = $state(0);
 	duration = $state(0);
+	volume = $state(1);
 	currentBuffer = $state<AudioBuffer | null>(null);
+	epilepsyAck = $state(false);
+	pendingPlayId = $state<string | null>(null);
 
 	#ctx: AudioContext | null = null;
 	#tracks = new Map<string, Track>();
@@ -39,6 +42,25 @@ class Player {
 
 	register(id: string, track: Track) {
 		this.#tracks.set(id, track);
+	}
+
+	loadEpilepsyAck() {
+		if (typeof localStorage === "undefined") return;
+		this.epilepsyAck = localStorage.getItem("epilepsy-ack-v1") === "true";
+	}
+
+	confirmEpilepsy() {
+		this.epilepsyAck = true;
+		if (typeof localStorage !== "undefined") {
+			localStorage.setItem("epilepsy-ack-v1", "true");
+		}
+		const id = this.pendingPlayId;
+		this.pendingPlayId = null;
+		if (id) void this.#doToggle(id);
+	}
+
+	cancelEpilepsy() {
+		this.pendingPlayId = null;
 	}
 
 	#ensureCtx() {
@@ -138,7 +160,7 @@ class Player {
 		const gain = this.#ctx.createGain();
 		const now = this.#ctx.currentTime;
 		gain.gain.setValueAtTime(0, now);
-		gain.gain.linearRampToValueAtTime(1, now + this.#fadeSeconds);
+		gain.gain.linearRampToValueAtTime(this.volume, now + this.#fadeSeconds);
 		src.connect(gain);
 		gain.connect(this.#ctx.destination);
 		this.#gain = gain;
@@ -160,6 +182,14 @@ class Player {
 	}
 
 	async toggle(id: string) {
+		if (!this.epilepsyAck && this.current !== id) {
+			this.pendingPlayId = id;
+			return;
+		}
+		await this.#doToggle(id);
+	}
+
+	async #doToggle(id: string) {
 		this.#ensureCtx();
 		if (!this.#ctx) return;
 
@@ -206,6 +236,16 @@ class Player {
 			lightshow.start(() => this.#audibleTime());
 		} finally {
 			if (this.#toggleVersion === myVersion) this.loading = null;
+		}
+	}
+
+	setVolume(v: number) {
+		const clamped = Math.max(0, Math.min(1, v));
+		this.volume = clamped;
+		if (this.#gain && this.#ctx) {
+			const now = this.#ctx.currentTime;
+			this.#gain.gain.cancelScheduledValues(now);
+			this.#gain.gain.setTargetAtTime(clamped, now, 0.01);
 		}
 	}
 

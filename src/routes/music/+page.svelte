@@ -6,8 +6,10 @@
 	import drop1Midi from "$lib/assets/Drop1 Eh White Flash.mid?url";
 	import { pageStyle } from "$lib/stores/pageStyle";
 	import { player } from "$lib/stores/player.svelte";
+	import { lightshow } from "$lib/lightshow/store.svelte";
 	import { onMount, onDestroy } from "svelte";
 	import MusicPlay from "./MusicPlay.svelte";
+	import EpilepsyModal from "./EpilepsyModal.svelte";
 	import FlashWash from "$lib/components/effects/FlashWash.svelte";
 	import LightShow from "$lib/components/effects/LightShow.svelte";
 	import LightshowDebug from "$lib/components/effects/LightshowDebug.svelte";
@@ -16,6 +18,9 @@
 	let { data } = $props();
 	let bgX = $state(50);
 	let bgY = $state(50);
+
+	let beatSeconds = $derived(lightshow.bpm > 0 ? 60 / lightshow.bpm : 0.5);
+	let isPlaying = $derived(player.current !== null);
 
 	function handleMouseMove(event) {
 		const x = (event.clientX / window.innerWidth) * 100;
@@ -40,6 +45,7 @@
 	onMount(() => {
 		pageStyle.set({ backgroundColor: "#1a1a2e", textColor: "#ffffff" });
 		document.body.classList.add("force-dark-music");
+		player.loadEpilepsyAck();
 		window.addEventListener("keydown", handleKeydown, { capture: true, passive: false });
 		return () => window.removeEventListener("keydown", handleKeydown, { capture: true });
 	});
@@ -55,10 +61,31 @@
 
 <h1
 	class="title drop-shadow-sm drop-shadow-[#ffffff8f]"
-	style="background-image: url({textClip}); background-position: {bgX}% {bgY}%;"
+	class:pulse={isPlaying}
+	style="background-image: url({textClip}); background-position: {bgX}% {bgY}%; --beat: {beatSeconds}s;"
 >
 	pfharmer
 </h1>
+
+<div class="volume-row">
+	<span class="volume-label">vol</span>
+	<input
+		type="range"
+		min="0"
+		max="1"
+		step="0.01"
+		value={player.volume}
+		oninput={(e) => player.setVolume(Number(e.currentTarget.value))}
+		aria-label="Volume"
+	/>
+	<span class="volume-value">{Math.round(player.volume * 100)}</span>
+</div>
+
+<p class="epilepsy-warning" role="note">
+	⚠ photosensitivity warning — playback drives full-screen flashes and strobes
+</p>
+
+<EpilepsyModal />
 
 <div class="mt-[50px]"></div>
 <!-- <MusicPlay -->
@@ -122,6 +149,14 @@
 			transform: scale(1.2) translateX(clamp(0px, 8vw, 120px));
 		}
 	}
+	.title.pulse {
+		animation: title-pulse var(--beat, 0.5s) cubic-bezier(0, 0.6, 0.3, 1) infinite;
+		transform-origin: left center;
+	}
+	@keyframes title-pulse {
+		0% { transform: scale(1.025); filter: brightness(1.15); }
+		100% { transform: scale(1); filter: brightness(1); }
+	}
 	.show-meta {
 		display: flex;
 		gap: 8px;
@@ -135,5 +170,30 @@
 		padding: 1px 6px;
 		border-radius: 999px;
 		font-size: 10px;
+	}
+	.volume-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-top: 16px;
+		font-family: ui-monospace, monospace;
+		font-size: 12px;
+		color: #aaa;
+	}
+	.volume-row input[type="range"] {
+		flex: 0 0 200px;
+		accent-color: #ff6b6b;
+	}
+	.volume-value {
+		min-width: 24px;
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+	.epilepsy-warning {
+		margin-top: 8px;
+		font-family: ui-monospace, monospace;
+		font-size: 11px;
+		color: #ffb84d;
+		opacity: 0.85;
 	}
 </style>

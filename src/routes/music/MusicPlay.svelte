@@ -24,6 +24,9 @@
 	let songposition = $derived(
 		isSeeking ? displayPosition : (isOn ? Math.floor(player.position) : 0)
 	);
+	let timeMeta = $derived(isOn && songlength
+		? `${Math.floor(songposition)}s / ${Math.floor(songlength)}s`
+		: null);
 
 	$effect(() => {
 		player.register(id, { src, bpm, midi, midiOffsets });
@@ -76,7 +79,7 @@
 
 	<div class="w-full flex-col">
 		<div>
-			{songName}{#if meta}<span class="meta">{meta}</span>{/if}
+			{songName}{#if meta}<span class="meta">{meta}</span>{/if}{#if timeMeta}<span class="meta">{timeMeta}</span>{/if}
 		</div>
 		<div
 			bind:this={trackEl}
