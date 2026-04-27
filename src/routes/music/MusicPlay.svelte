@@ -1,14 +1,13 @@
 <script>
 	import Icon from "@iconify/svelte";
 	import { player } from "$lib/stores/player.svelte";
-	import genDub from "$lib/assets/genDub.wav";
 
 	let {
 		id = "konvolication",
 		songName = "Konvolication Pfharmer",
 		meta = null,
 		color = "#ff6b6b",
-		src = genDub,
+		src = "",
 		bpm = null,
 		midi = null,
 		midiOffsets = {}
