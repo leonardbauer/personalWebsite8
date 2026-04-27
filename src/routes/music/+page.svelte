@@ -1,19 +1,19 @@
 <script>
 	import textClip from "$lib/assets/textclip.png";
-	import genDub from "$lib/assets/genDub.wav";
-	import stabMidi from "$lib/assets/stab.mid?url";
-	import kickMidi from "$lib/assets/Kick.mid?url";
-	import drop1Midi from "$lib/assets/Drop1 Eh White Flash.mid?url";
+	//import genDub from "$lib/assets/genDub.wav";
+	//import stabMidi from "$lib/assets/stab.mid?url";
+	//import kickMidi from "$lib/assets/Kick.mid?url";
+	//import drop1Midi from "$lib/assets/Drop1 Eh White Flash.mid?url";
 	import { pageStyle } from "$lib/stores/pageStyle";
 	import { player } from "$lib/stores/player.svelte";
 	import { lightshow } from "$lib/lightshow/store.svelte";
 	import { onMount, onDestroy } from "svelte";
-	import MusicPlay from "./MusicPlay.svelte";
+	// import MusicPlay from "./MusicPlay.svelte";
 	import EpilepsyModal from "./EpilepsyModal.svelte";
-	import FlashWash from "$lib/components/effects/FlashWash.svelte";
+	// import FlashWash from "$lib/components/effects/FlashWash.svelte";
 	import LightShow from "$lib/components/effects/LightShow.svelte";
-	import LightshowDebug from "$lib/components/effects/LightshowDebug.svelte";
-	import Timeline from "$lib/components/effects/Timeline.svelte";
+	// import LightshowDebug from "$lib/components/effects/LightshowDebug.svelte";
+	// import Timeline from "$lib/components/effects/Timeline.svelte";
 
 	let { data } = $props();
 	let bgX = $state(50);
