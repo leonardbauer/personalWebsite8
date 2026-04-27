@@ -13,12 +13,19 @@
 		type StudioConfig
 	} from "$lib/lightshow/persistence";
 	import { keybinds } from "$lib/lightshow/keybinds.svelte";
+	import { DEFAULT_ADSR, type ADSR } from "$lib/lightshow/envelope";
+	import { evaluateLane, defaultLane, type AutomationLane } from "$lib/lightshow/automation";
 	import FlashWash from "$lib/components/effects/FlashWash.svelte";
 	import Strobe from "$lib/components/effects/Strobe.svelte";
-	import Timeline from "$lib/components/effects/Timeline.svelte";
+	import ShaderBloom from "$lib/components/effects/ShaderBloom.svelte";
+	import ADSRVisualizer from "$lib/components/effects/ADSRVisualizer.svelte";
+	import Timeline, { type AutomationView } from "$lib/components/effects/Timeline.svelte";
+	import JSZip from "jszip";
 	import LightshowDebug from "$lib/components/effects/LightshowDebug.svelte";
 
-	type EffectType = "flash" | "strobe" | "pulse";
+	type EffectType = "flash" | "strobe" | "pulse" | "bloom";
+
+	type AutomatableParam = "maxOpacity" | "strobeSubdivisions";
 
 	type ChannelConfig = {
 		fileName: string;
@@ -26,15 +33,38 @@
 		color: string;
 		noteColors: Record<string, string>;
 		maxOpacity: number;
-		decay: number;
+		adsr: ADSR;
 		offset: number;
 		effect: EffectType;
+		strobeSubdivisions: number;
+		automations: Partial<Record<AutomatableParam, AutomationLane>>;
+		expanded: boolean;
 	};
+
+	const AUTOMATABLE_PARAMS: Array<{
+		key: AutomatableParam;
+		label: string;
+		min: number;
+		max: number;
+		values?: number[];
+		logScale?: boolean;
+	}> = [
+		{ key: "maxOpacity", label: "max opacity", min: 0, max: 1 },
+		{
+			key: "strobeSubdivisions",
+			label: "strobe rate",
+			min: 0.25,
+			max: 16,
+			values: [0.25, 0.5, 1, 2, 4, 8, 16],
+			logScale: true
+		}
+	];
 
 	const EFFECT_LIBRARY: Array<{ id: EffectType; label: string; description: string }> = [
 		{ id: "flash", label: "Flash Wash", description: "Full-screen colored wash" },
 		{ id: "strobe", label: "Strobe", description: "Quick bright pulse" },
-		{ id: "pulse", label: "Pulse", description: "Scale + glow on element" }
+		{ id: "pulse", label: "Pulse", description: "Scale + glow on element" },
+		{ id: "bloom", label: "Bloom (GPU)", description: "WebGPU radial bloom shader" }
 	];
 
 	function makeDefaultName(filename: string): string {
@@ -79,6 +109,138 @@
 	let audioInputEl: HTMLInputElement | undefined = $state();
 	let midiInputEl: HTMLInputElement | undefined = $state();
 
+	const LAYOUT_KEY = "lightshow-studio-layout";
+	let filesW = $state(200);
+	let libraryW = $state(240);
+	let timelineH = $state(0.4);
+	let debugW = $state(0);
+	let previewW = $state(0);
+	let previewMode = $state<"overlay" | "window">("overlay");
+
+	type LayoutSnapshot = {
+		filesW: number;
+		libraryW: number;
+		timelineH: number;
+		debugW: number;
+		previewW: number;
+		previewMode: "overlay" | "window";
+	};
+
+	function loadLayout() {
+		if (typeof localStorage === "undefined") return;
+		try {
+			const raw = localStorage.getItem(LAYOUT_KEY);
+			if (!raw) return;
+			const v = JSON.parse(raw) as Partial<LayoutSnapshot>;
+			if (typeof v.filesW === "number") filesW = clampW(v.filesW);
+			if (typeof v.libraryW === "number") libraryW = clampW(v.libraryW);
+			if (typeof v.timelineH === "number") timelineH = clampH(v.timelineH);
+			if (typeof v.debugW === "number") debugW = clampDebug(v.debugW);
+			if (typeof v.previewW === "number") previewW = clampPreview(v.previewW);
+			if (v.previewMode === "overlay" || v.previewMode === "window") previewMode = v.previewMode;
+		} catch {
+			// ignore
+		}
+	}
+	function saveLayout() {
+		if (typeof localStorage === "undefined") return;
+		const snap: LayoutSnapshot = { filesW, libraryW, timelineH, debugW, previewW, previewMode };
+		localStorage.setItem(LAYOUT_KEY, JSON.stringify(snap));
+	}
+
+	function clampPreview(v: number) {
+		if (v < 60) return 0;
+		return Math.min(800, v);
+	}
+
+	function togglePreview() {
+		previewW = previewW > 0 ? 0 : 320;
+		saveLayout();
+	}
+
+	function startPreviewResize(e: PointerEvent) {
+		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		const startX = e.clientX;
+		const startW = previewW;
+		const move = (ev: PointerEvent) => {
+			previewW = clampPreview(startW + (startX - ev.clientX));
+		};
+		const up = () => {
+			window.removeEventListener("pointermove", move);
+			window.removeEventListener("pointerup", up);
+			saveLayout();
+		};
+		window.addEventListener("pointermove", move);
+		window.addEventListener("pointerup", up);
+	}
+
+	function clampDebug(v: number) {
+		if (v < 30) return 0;
+		return Math.min(600, v);
+	}
+
+	let timelinePx = $derived(Math.floor(vh * timelineH) + 6);
+
+	function clampW(v: number) {
+		return Math.max(120, Math.min(500, v));
+	}
+	function clampH(v: number) {
+		return Math.max(0.15, Math.min(0.75, v));
+	}
+
+	function startColResize(target: "files" | "library", e: PointerEvent) {
+		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		const startX = e.clientX;
+		const startW = target === "files" ? filesW : libraryW;
+		const move = (ev: PointerEvent) => {
+			const next = clampW(startW + (ev.clientX - startX));
+			if (target === "files") filesW = next;
+			else libraryW = next;
+		};
+		const up = () => {
+			window.removeEventListener("pointermove", move);
+			window.removeEventListener("pointerup", up);
+			saveLayout();
+		};
+		window.addEventListener("pointermove", move);
+		window.addEventListener("pointerup", up);
+	}
+
+	function startDebugResize(e: PointerEvent) {
+		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		const startX = e.clientX;
+		const startW = debugW;
+		const move = (ev: PointerEvent) => {
+			const next = startW + (startX - ev.clientX);
+			debugW = clampDebug(next);
+		};
+		const up = () => {
+			window.removeEventListener("pointermove", move);
+			window.removeEventListener("pointerup", up);
+			saveLayout();
+		};
+		window.addEventListener("pointermove", move);
+		window.addEventListener("pointerup", up);
+	}
+
+	function startTimelineResize(e: PointerEvent) {
+		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		const startY = e.clientY;
+		const startH = timelineH;
+		const winH = window.innerHeight;
+		const move = (ev: PointerEvent) => {
+			const deltaFrac = (startY - ev.clientY) / winH;
+			timelineH = clampH(startH + deltaFrac);
+		};
+		const up = () => {
+			window.removeEventListener("pointermove", move);
+			window.removeEventListener("pointerup", up);
+			saveLayout();
+		};
+		window.addEventListener("pointermove", move);
+		window.addEventListener("pointerup", up);
+	}
+
 	$effect(() => {
 		if (!midiFiles.length) {
 			if (restored) channels = [];
@@ -89,6 +251,7 @@
 	});
 
 	onMount(() => {
+		loadLayout();
 		const updateSize = () => {
 			vw = window.innerWidth;
 			vh = window.innerHeight;
@@ -171,16 +334,29 @@
 		if (cfg) {
 			bpm = cfg.bpm;
 			if (cfg.channels?.length) {
-				channels = cfg.channels.map((c) => ({
-					fileName: c.fileName ?? "",
-					name: c.name,
-					color: c.color,
-					noteColors: c.noteColors ?? {},
-					maxOpacity: c.maxOpacity,
-					decay: c.decay,
-					offset: c.offset,
-					effect: ((c as { effect?: EffectType }).effect ?? "flash") as EffectType
-				}));
+				channels = cfg.channels.map((c) => {
+					const cc = c as Partial<ChannelConfig> & { decay?: number };
+					const adsr =
+						cc.adsr ??
+						(cc.decay
+							? { attack: 0, decay: 0, sustain: 1, release: cc.decay / 1000 }
+							: { ...DEFAULT_ADSR });
+					const cExt = c as Partial<ChannelConfig>;
+					return {
+						fileName: c.fileName ?? "",
+						name: c.name,
+						color: c.color,
+						noteColors: c.noteColors ?? {},
+						maxOpacity: c.maxOpacity,
+						adsr,
+						offset: c.offset,
+						effect: ((c as { effect?: EffectType }).effect ?? "flash") as EffectType,
+						strobeSubdivisions:
+							(c as { strobeSubdivisions?: number }).strobeSubdivisions ?? 4,
+						automations: cExt.automations ?? {},
+						expanded: cExt.expanded ?? false
+					};
+				});
 				console.log("[studio] restored channels:", channels.length);
 			}
 		}
@@ -313,14 +489,131 @@
 					color: PALETTE[i % PALETTE.length],
 					noteColors: {},
 					maxOpacity: 0.6,
-					decay: 400,
+					adsr: { ...DEFAULT_ADSR },
 					offset: 0,
-					effect: "flash" as EffectType
+					effect: "flash" as EffectType,
+					strobeSubdivisions: 4,
+					automations: {},
+					expanded: false
 				}
 		);
 	}
 
 	let isPlaying = $derived(player.current === PREVIEW_ID);
+
+	let automationViews = $derived.by(() => {
+		const views: AutomationView[] = [];
+		for (const ch of channels) {
+			for (const p of AUTOMATABLE_PARAMS) {
+				const lane = ch.automations[p.key];
+				if (lane && lane.enabled) {
+					views.push({
+						channelName: ch.name,
+						param: p.label,
+						min: p.min,
+						max: p.max,
+						lane,
+						color: ch.color,
+						values: p.values,
+						logScale: p.logScale
+					});
+				}
+			}
+		}
+		return views;
+	});
+
+	function findAutomation(channelName: string, paramLabel: string) {
+		const idx = channels.findIndex((c) => c.name === channelName);
+		if (idx < 0) return null;
+		const param = AUTOMATABLE_PARAMS.find((p) => p.label === paramLabel);
+		if (!param) return null;
+		return { idx, param };
+	}
+
+	function handleAddBreakpoint(channelName: string, paramLabel: string, time: number, value: number) {
+		const found = findAutomation(channelName, paramLabel);
+		if (!found) return;
+		const lane = channels[found.idx].automations[found.param.key];
+		if (!lane) return;
+		const v = snapEnum(found.param, value);
+		const bps = [...lane.breakpoints, { time, value: v, curve: "linear" as const }].sort(
+			(a, b) => a.time - b.time
+		);
+		channels[found.idx].automations = {
+			...channels[found.idx].automations,
+			[found.param.key]: { ...lane, breakpoints: bps }
+		};
+	}
+
+	function snapEnum(param: typeof AUTOMATABLE_PARAMS[number], value: number): number {
+		const clamped = Math.max(param.min, Math.min(param.max, value));
+		if (!param.values) return clamped;
+		let nearest = param.values[0];
+		let best = Math.abs(clamped - nearest);
+		for (const c of param.values) {
+			const d = Math.abs(clamped - c);
+			if (d < best) {
+				best = d;
+				nearest = c;
+			}
+		}
+		return nearest;
+	}
+
+	function handleMoveBreakpoint(
+		channelName: string,
+		paramLabel: string,
+		bpIdx: number,
+		time: number,
+		value: number
+	) {
+		const found = findAutomation(channelName, paramLabel);
+		if (!found) return;
+		const lane = channels[found.idx].automations[found.param.key];
+		if (!lane || bpIdx < 0 || bpIdx >= lane.breakpoints.length) return;
+		const v = snapEnum(found.param, value);
+		const bps = [...lane.breakpoints];
+		bps[bpIdx] = { ...bps[bpIdx], time: Math.max(0, time), value: v };
+		bps.sort((a, b) => a.time - b.time);
+		channels[found.idx].automations = {
+			...channels[found.idx].automations,
+			[found.param.key]: { ...lane, breakpoints: bps }
+		};
+	}
+
+	function handleRemoveBreakpoint(channelName: string, paramLabel: string, bpIdx: number) {
+		const found = findAutomation(channelName, paramLabel);
+		if (!found) return;
+		const lane = channels[found.idx].automations[found.param.key];
+		if (!lane || lane.breakpoints.length <= 1) return;
+		const bps = lane.breakpoints.filter((_, i) => i !== bpIdx);
+		channels[found.idx].automations = {
+			...channels[found.idx].automations,
+			[found.param.key]: { ...lane, breakpoints: bps }
+		};
+	}
+
+	function toggleAutomation(channelIdx: number, paramKey: AutomatableParam) {
+		const ch = channels[channelIdx];
+		if (ch.automations[paramKey]) {
+			const next = { ...ch.automations };
+			delete next[paramKey];
+			channels[channelIdx].automations = next;
+		} else {
+			const param = AUTOMATABLE_PARAMS.find((p) => p.key === paramKey);
+			const currentValue = ch[paramKey] as number;
+			const lane = defaultLane(currentValue, player.duration || 60);
+			if (param?.values) {
+				lane.breakpoints = lane.breakpoints.map((bp) => ({
+					...bp,
+					value: snapEnum(param, bp.value),
+					curve: "linear" as const
+				}));
+			}
+			channels[channelIdx].automations = { ...ch.automations, [paramKey]: lane };
+		}
+	}
 
 	async function play() {
 		if (!audioFile) return;
@@ -342,22 +635,73 @@
 	}
 
 	function exportConfig() {
-		const config = {
-			bpm,
-			audio: audioFile?.name ?? null,
-			midi: midiFiles.map((f) => f.name),
-			channels: channels.map((c) => ({
-				name: c.name,
-				color: c.color,
-				maxOpacity: c.maxOpacity,
-				decay: c.decay,
-				offset: c.offset
-			}))
-		};
+		const config = buildShowConfig();
 		const json = JSON.stringify(config, null, 2);
 		navigator.clipboard.writeText(json);
 		console.log(json);
-		alert("Config copied to clipboard (also logged to console)");
+		alert("show.json copied to clipboard");
+	}
+
+	function buildShowConfig() {
+		const showName = audioFile?.name?.replace(/\.[^.]+$/, "") ?? "show";
+		return {
+			showName,
+			bpm,
+			audio: audioFile?.name ?? null,
+			channels: channels.map((c, i) => ({
+				name: c.name,
+				midi: midiFiles[i]?.name ?? null,
+				color: c.color,
+				noteColors: c.noteColors,
+				maxOpacity: c.maxOpacity,
+				adsr: c.adsr,
+				offset: c.offset,
+				effect: c.effect,
+				strobeSubdivisions: c.strobeSubdivisions,
+				automations: c.automations
+			}))
+		};
+	}
+
+	async function exportShowZip() {
+		if (!audioFile) {
+			alert("Add an audio file first");
+			return;
+		}
+		const zip = new JSZip();
+		const showName = audioFile.name.replace(/\.[^.]+$/, "");
+		const folder = zip.folder(showName);
+		if (!folder) return;
+
+		folder.file(audioFile.name, audioFile);
+		const midiFolder = folder.folder("midi");
+		if (midiFolder) {
+			for (const m of midiFiles) midiFolder.file(m.name, m);
+		}
+
+		const showJson = buildShowConfig();
+		folder.file("show.json", JSON.stringify(showJson, null, 2));
+
+		const readme = `# ${showName} lightshow
+
+Drop this folder into \`static/shows/\` of your SvelteKit project so the assets
+serve at \`/shows/${showName}/...\`. Then on your /music page, render:
+
+\`\`\`svelte
+<LightShow src="/shows/${showName}/show.json" />
+\`\`\`
+
+The \`<LightShow>\` component is in \`src/lib/components/effects/LightShow.svelte\`.
+`;
+		folder.file("README.md", readme);
+
+		const blob = await zip.generateAsync({ type: "blob" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `${showName}.zip`;
+		a.click();
+		setTimeout(() => URL.revokeObjectURL(url), 1500);
 	}
 
 	function fmt(t: number) {
@@ -408,17 +752,39 @@
 		<span class="position-display">
 			{fmt(player.position)} <span class="dim">/ {fmt(player.duration)}</span>
 		</span>
+		<label class="bpm-inline">
+			<input type="number" bind:value={bpm} min="20" max="300" step="0.01" />
+			<span class="dim">bpm</span>
+		</label>
 		<div class="header-actions">
 			<button onclick={play} disabled={!audioFile || !midiFiles.length || player.loading === PREVIEW_ID}>
 				{#if player.loading === PREVIEW_ID}loading…{:else if isPlaying}pause{:else}play{/if}
 			</button>
+			<button onclick={exportShowZip} disabled={!channels.length || !audioFile}>export zip</button>
 			<button onclick={exportConfig} disabled={!channels.length}>copy json</button>
 			<button onclick={clearProject} class="danger">clear</button>
 		</div>
 		{#if lastSaved}<span class="saved-tag">auto-saved</span>{/if}
+		<button
+			type="button"
+			class="preview-toggle"
+			class:active={previewW > 0}
+			onclick={togglePreview}
+			title="toggle preview drawer"
+			aria-label="toggle preview"
+		>
+			<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+				<rect x="2" y="4" width="13" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+				<rect x="17" y="4" width="5" height="16" rx="1" fill="currentColor" />
+				<path d="M11 8 L8 12 L11 16" stroke="currentColor" stroke-width="1.5" fill="none" />
+			</svg>
+		</button>
 	</header>
 
-	<div class="main-grid">
+	<div
+		class="main-grid"
+		style="grid-template-columns: {filesW}px 2px {libraryW}px 2px 1fr {previewW > 0 ? `2px ${previewW}px` : ''};"
+	>
 		<aside class="files-col">
 			<h3>Files</h3>
 
@@ -464,11 +830,15 @@
 				{/each}
 			</div>
 
-			<label class="bpm-row">
-				<span class="lbl">BPM</span>
-				<input type="number" bind:value={bpm} min="20" max="300" step="0.01" />
-			</label>
 		</aside>
+
+		<div
+			class="splitter-v"
+			role="separator"
+			aria-orientation="vertical"
+			tabindex="0"
+			onpointerdown={(e) => startColResize("files", e)}
+		></div>
 
 		<aside class="library-col">
 			<h3>Light Library</h3>
@@ -493,6 +863,14 @@
 				<p class="empty-hint">Select a channel from the timeline first.</p>
 			{/if}
 		</aside>
+
+		<div
+			class="splitter-v"
+			role="separator"
+			aria-orientation="vertical"
+			tabindex="0"
+			onpointerdown={(e) => startColResize("library", e)}
+		></div>
 
 		<main class="settings-col">
 			{#if midiFiles.length && parsing}
@@ -561,19 +939,87 @@
 						<span class="num">{selectedConfig.maxOpacity.toFixed(2)}</span>
 					</label>
 
-					<label>
-						<span class="lbl">decay (ms)</span>
-						<input
-							type="number"
-							min="0"
-							step="10"
-							value={selectedConfig.decay}
-							oninput={(e) => {
-								if (selectedIndex < 0) return;
-								channels[selectedIndex].decay = parseInt((e.currentTarget as HTMLInputElement).value, 10) || 0;
-							}}
+					<div class="adsr-block">
+						<div class="adsr-header">
+							<span class="lbl">envelope (s)</span>
+						</div>
+						<ADSRVisualizer
+							channel={selectedConfig.name}
+							adsr={selectedConfig.adsr}
+							color={selectedConfig.color}
 						/>
-					</label>
+						<div class="adsr-sliders">
+							{#each [
+								{ key: "attack", label: "A", max: 2, step: 0.01 },
+								{ key: "decay", label: "D", max: 2, step: 0.01 },
+								{ key: "sustain", label: "S", max: 1, step: 0.01 },
+								{ key: "release", label: "R", max: 4, step: 0.01 }
+							] as cfg (cfg.key)}
+								<label class="adsr-slider">
+									<span>{cfg.label}</span>
+									<input
+										type="range"
+										min="0"
+										max={cfg.max}
+										step={cfg.step}
+										value={selectedConfig.adsr[cfg.key as keyof ADSR]}
+										oninput={(e) => {
+											if (selectedIndex < 0) return;
+											const v = parseFloat((e.currentTarget as HTMLInputElement).value);
+											channels[selectedIndex].adsr = {
+												...channels[selectedIndex].adsr,
+												[cfg.key]: v
+											};
+										}}
+									/>
+									<span class="num">{selectedConfig.adsr[cfg.key as keyof ADSR].toFixed(2)}</span>
+								</label>
+							{/each}
+						</div>
+					</div>
+
+					<div class="auto-section">
+						<div class="lbl">automation</div>
+						<div class="auto-toggles">
+							{#each AUTOMATABLE_PARAMS as p (p.key)}
+								<button
+									type="button"
+									class="auto-toggle"
+									class:active={!!selectedConfig.automations[p.key]}
+									onclick={() => toggleAutomation(selectedIndex, p.key)}
+									disabled={selectedIndex < 0}
+								>
+									{selectedConfig.automations[p.key] ? "✓" : "+"} {p.label}
+								</button>
+							{/each}
+						</div>
+					</div>
+
+					{#if selectedConfig.effect === "strobe"}
+						<label>
+							<span class="lbl">strobe rate</span>
+							<select
+								value={selectedConfig.strobeSubdivisions}
+								onchange={(e) => {
+									if (selectedIndex < 0) return;
+									channels[selectedIndex].strobeSubdivisions = parseFloat(
+										(e.currentTarget as HTMLSelectElement).value
+									);
+								}}
+							>
+								<option value={0.25}>1/1 (whole)</option>
+								<option value={0.5}>1/2</option>
+								<option value={1}>1/4</option>
+								<option value={2}>1/8</option>
+								<option value={4}>1/16</option>
+								<option value={8}>1/32</option>
+								<option value={16}>1/64</option>
+							</select>
+							<span class="num">
+								{(((bpm || 120) / 60) * selectedConfig.strobeSubdivisions).toFixed(1)} Hz
+							</span>
+						</label>
+					{/if}
 
 					<label>
 						<span class="lbl">offset (s)</span>
@@ -642,34 +1088,133 @@
 				</div>
 			{/if}
 		</main>
+
+		{#if previewW > 0}
+			<div
+				class="splitter-v"
+				role="separator"
+				aria-orientation="vertical"
+				tabindex="0"
+				onpointerdown={startPreviewResize}
+			></div>
+
+			<aside class="preview-col">
+				<div class="preview-header">
+					<h3>Preview</h3>
+					<div class="mode-switch">
+						<button
+							type="button"
+							class:active={previewMode === "overlay"}
+							onclick={() => {
+								previewMode = "overlay";
+								saveLayout();
+							}}
+						>overlay</button>
+						<button
+							type="button"
+							class:active={previewMode === "window"}
+							onclick={() => {
+								previewMode = "window";
+								saveLayout();
+							}}
+						>window</button>
+					</div>
+				</div>
+
+				<div class="preview-window">
+					{#if previewMode === "window"}
+						{#each channels as ch (ch.name)}
+							{#if ch.effect === "flash"}
+								<FlashWash
+									channel={ch.name}
+									defaultColor={ch.color}
+									colors={ch.noteColors}
+									maxOpacity={evaluateLane(ch.automations.maxOpacity, player.position) ?? ch.maxOpacity}
+									adsr={ch.adsr}
+								/>
+							{:else if ch.effect === "strobe"}
+								<Strobe channel={ch.name} color={ch.color} subdivisions={evaluateLane(ch.automations.strobeSubdivisions, player.position) ?? ch.strobeSubdivisions} {bpm} />
+							{:else if ch.effect === "bloom"}
+								<ShaderBloom
+									channel={ch.name}
+									color={ch.color}
+									colors={ch.noteColors}
+									adsr={ch.adsr}
+									maxIntensity={evaluateLane(ch.automations.maxOpacity, player.position) ?? ch.maxOpacity}
+								/>
+							{/if}
+						{/each}
+					{:else}
+						<div class="preview-placeholder">overlay mode — effects render fullscreen</div>
+					{/if}
+				</div>
+			</aside>
+		{/if}
 	</div>
 
-	<div class="timeline-wrap">
+	<div
+		class="splitter-h"
+		role="separator"
+		aria-orientation="horizontal"
+		tabindex="0"
+		onpointerdown={startTimelineResize}
+	></div>
+
+	<div class="timeline-wrap" style="height: {Math.floor(vh * timelineH)}px;">
 		<Timeline
 			width={vw - 16}
-			height={Math.floor(vh * 0.4)}
+			height={Math.floor(vh * timelineH)}
 			{selectedChannel}
 			onSelectChannel={(name) => (selectedChannel = name)}
+			automations={automationViews}
+			onAddBreakpoint={handleAddBreakpoint}
+			onMoveBreakpoint={handleMoveBreakpoint}
+			onRemoveBreakpoint={handleRemoveBreakpoint}
 		/>
 	</div>
 </div>
 
-<!-- Live preview effects -->
-{#each channels as ch (ch.name)}
-	{#if ch.effect === "flash"}
-		<FlashWash
-			channel={ch.name}
-			defaultColor={ch.color}
-			colors={ch.noteColors}
-			maxOpacity={ch.maxOpacity}
-			decay={ch.decay}
-		/>
-	{:else if ch.effect === "strobe"}
-		<Strobe channel={ch.name} color={ch.color} decay={ch.decay} />
-	{/if}
-{/each}
+<!-- Live preview effects (overlay mode renders fullscreen, window mode renders inside the preview drawer) -->
+{#if previewMode === "overlay"}
+	{#each channels as ch (ch.name)}
+		{#if ch.effect === "flash"}
+			<FlashWash
+				channel={ch.name}
+				defaultColor={ch.color}
+				colors={ch.noteColors}
+				maxOpacity={evaluateLane(ch.automations.maxOpacity, player.position) ?? ch.maxOpacity}
+				adsr={ch.adsr}
+			/>
+		{:else if ch.effect === "strobe"}
+			<Strobe channel={ch.name} color={ch.color} subdivisions={evaluateLane(ch.automations.strobeSubdivisions, player.position) ?? ch.strobeSubdivisions} {bpm} />
+		{:else if ch.effect === "bloom"}
+			<ShaderBloom
+				channel={ch.name}
+				color={ch.color}
+				colors={ch.noteColors}
+				adsr={ch.adsr}
+				maxIntensity={evaluateLane(ch.automations.maxOpacity, player.position) ?? ch.maxOpacity}
+			/>
+		{/if}
+	{/each}
+{/if}
 
-<LightshowDebug />
+<div
+	class="debug-handle"
+	style="right: {debugW}px; bottom: {timelinePx}px;"
+	role="separator"
+	aria-orientation="vertical"
+	tabindex="0"
+	title="drag to open debug"
+	onpointerdown={startDebugResize}
+></div>
+<div class="debug-drawer" style="width: {debugW}px; bottom: {timelinePx}px;">
+	{#if debugW > 30}
+		<div class="debug-content">
+			<LightshowDebug />
+		</div>
+	{/if}
+</div>
 
 <style>
 	.studio {
@@ -677,8 +1222,8 @@
 		inset: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
-		padding: 8px;
+		gap: 4px;
+		padding: 4px;
 		color: #fff;
 		font-family: ui-monospace, monospace;
 		font-size: 12px;
@@ -687,13 +1232,80 @@
 	.main-grid {
 		display: grid;
 		grid-template-columns: 200px 240px 1fr;
-		gap: 8px;
+		gap: 4px;
 		align-items: stretch;
 		flex: 1;
 		min-height: 0;
 	}
 	.timeline-wrap {
 		flex-shrink: 0;
+	}
+	.splitter-v,
+	.splitter-h {
+		position: relative;
+		background: transparent;
+		transition: background 100ms;
+		border-radius: 999px;
+	}
+	.splitter-v {
+		cursor: col-resize;
+	}
+	.splitter-h {
+		height: 2px;
+		flex-shrink: 0;
+		cursor: row-resize;
+	}
+	.splitter-v:hover,
+	.splitter-v:active,
+	.splitter-h:hover,
+	.splitter-h:active {
+		background: rgba(125, 249, 255, 0.5);
+	}
+	.splitter-v::before {
+		content: "";
+		position: absolute;
+		inset: 0 -3px;
+	}
+	.splitter-h::before {
+		content: "";
+		position: absolute;
+		inset: -3px 0;
+	}
+	.debug-handle {
+		position: fixed;
+		top: 0;
+		bottom: 0;
+		width: 6px;
+		cursor: col-resize;
+		z-index: 101;
+		background: rgba(255, 255, 255, 0.04);
+		transition: background 100ms;
+	}
+	.debug-handle:hover,
+	.debug-handle:active {
+		background: rgba(125, 249, 255, 0.5);
+	}
+	.debug-drawer {
+		position: fixed;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.92);
+		border-left: 1px solid rgba(255, 255, 255, 0.15);
+		z-index: 100;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+	.debug-content {
+		padding: 8px;
+		min-width: 280px;
+	}
+	.debug-content :global(.debug) {
+		position: static;
+		max-width: none;
+		min-width: 0;
+		background: transparent;
+		padding: 0;
 	}
 	.files-col,
 	.library-col,
@@ -703,9 +1315,70 @@
 	}
 	.files-col,
 	.library-col,
-	.settings-col {
+	.settings-col,
+	.preview-col {
 		background: rgba(255, 255, 255, 0.04);
 		border-radius: 6px;
+		padding: 6px;
+	}
+	.preview-col {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		overflow: hidden;
+	}
+	.preview-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 6px;
+		margin-bottom: 6px;
+	}
+	.preview-header h3 {
+		margin-bottom: 0;
+	}
+	.mode-switch {
+		display: inline-flex;
+		gap: 1px;
+		background: rgba(255, 255, 255, 0.04);
+		padding: 1px;
+		border-radius: 3px;
+	}
+	.mode-switch button {
+		padding: 2px 6px;
+		font-size: 10px;
+		background: transparent;
+		color: rgba(255, 255, 255, 0.6);
+		border-radius: 2px;
+	}
+	.mode-switch button.active {
+		background: rgba(125, 249, 255, 0.2);
+		color: #7df9ff;
+	}
+	.preview-window {
+		flex: 1;
+		position: relative;
+		background: #000;
+		border-radius: 4px;
+		overflow: hidden;
+		min-height: 0;
+		transform: translateZ(0);
+	}
+	.preview-window :global(.flash-wash),
+	.preview-window :global(.strobe),
+	.preview-window :global(.shader-canvas) {
+		position: fixed;
+	}
+	.preview-placeholder {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-style: italic;
+		opacity: 0.5;
+		font-size: 11px;
+		text-align: center;
 		padding: 12px;
 	}
 	.settings-col {
@@ -715,7 +1388,7 @@
 		font-size: 11px;
 		text-transform: uppercase;
 		opacity: 0.6;
-		margin-bottom: 10px;
+		margin-bottom: 5px;
 		letter-spacing: 0.05em;
 	}
 	.hidden-file-label {
@@ -742,7 +1415,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
-		margin: 12px 0;
+		margin: 6px 0;
 	}
 	.file-row {
 		display: flex;
@@ -782,8 +1455,8 @@
 	.bpm-row {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		margin-bottom: 12px;
+		gap: 4px;
+		margin-bottom: 6px;
 	}
 	.actions.stacked {
 		display: flex;
@@ -839,7 +1512,7 @@
 	header {
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: 6px;
 		flex-shrink: 0;
 		height: 28px;
 	}
@@ -856,10 +1529,52 @@
 	.position-display .dim {
 		opacity: 0.5;
 	}
+	.bpm-inline {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		font-size: 11px;
+	}
+	.bpm-inline input {
+		width: 5ch;
+		field-sizing: content;
+		height: 18px;
+		font-size: 10px;
+		padding: 0 4px;
+		line-height: 18px;
+		appearance: textfield;
+		-moz-appearance: textfield;
+	}
+	.bpm-inline input::-webkit-inner-spin-button,
+	.bpm-inline input::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+		appearance: none;
+		margin: 0;
+	}
 	.header-actions {
 		display: flex;
 		gap: 4px;
 		margin-left: auto;
+	}
+	.preview-toggle {
+		background: rgba(255, 255, 255, 0.06);
+		color: rgba(255, 255, 255, 0.7);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		padding: 3px 6px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 3px;
+		cursor: pointer;
+	}
+	.preview-toggle:hover {
+		background: rgba(255, 255, 255, 0.12);
+		color: #fff;
+	}
+	.preview-toggle.active {
+		background: rgba(125, 249, 255, 0.15);
+		color: #7df9ff;
+		border-color: rgba(125, 249, 255, 0.5);
 	}
 	.header-actions button {
 		padding: 4px 10px;
@@ -871,7 +1586,7 @@
 	}
 	section {
 		margin-bottom: 0;
-		padding: 12px;
+		padding: 6px;
 	}
 	.files label {
 		display: flex;
@@ -933,20 +1648,20 @@
 	.editor h2,
 	.editor h3 {
 		font-size: 13px;
-		margin-bottom: 12px;
+		margin-bottom: 6px;
 	}
 	.editor h3 {
-		margin-top: 16px;
+		margin-top: 8px;
 	}
 	.editor-grid {
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 6px;
 	}
 	.editor-grid label {
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: 6px;
 	}
 	.editor-grid .lbl {
 		min-width: 120px;
@@ -957,7 +1672,69 @@
 	.note-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-		gap: 8px;
+		gap: 4px;
+	}
+	.auto-section {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 4px 6px;
+		background: rgba(255, 255, 255, 0.03);
+		border-radius: 4px;
+	}
+	.auto-toggles {
+		display: flex;
+		gap: 4px;
+		flex-wrap: wrap;
+	}
+	.auto-toggle {
+		padding: 3px 6px;
+		font-size: 10px;
+		background: rgba(255, 255, 255, 0.05);
+		color: rgba(255, 255, 255, 0.7);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		border-radius: 3px;
+	}
+	.auto-toggle.active {
+		background: rgba(125, 249, 255, 0.15);
+		color: #7df9ff;
+		border-color: rgba(125, 249, 255, 0.5);
+	}
+	.adsr-block {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 6px;
+		background: rgba(255, 255, 255, 0.03);
+		border-radius: 4px;
+	}
+	.adsr-header {
+		display: flex;
+		justify-content: space-between;
+	}
+	.adsr-sliders {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 6px;
+	}
+	.adsr-slider {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 2px;
+	}
+	.adsr-slider span:first-child {
+		font-size: 10px;
+		opacity: 0.6;
+	}
+	.adsr-slider .num {
+		font-size: 9px;
+		opacity: 0.5;
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+	.adsr-slider input[type="range"] {
+		width: 100%;
 	}
 	.note-row {
 		display: flex;
@@ -1004,7 +1781,8 @@
 	}
 	input[type="number"],
 	input[type="text"],
-	input[type="range"] {
+	input[type="range"],
+	select {
 		background: rgba(255, 255, 255, 0.08);
 		color: #fff;
 		border: 1px solid rgba(255, 255, 255, 0.15);

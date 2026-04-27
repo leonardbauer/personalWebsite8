@@ -11,6 +11,7 @@
     import FlashWash from "$lib/components/effects/FlashWash.svelte";
     import LightshowDebug from "$lib/components/effects/LightshowDebug.svelte";
     import Timeline from "$lib/components/effects/Timeline.svelte";
+    import LightShow from "$lib/components/effects/LightShow.svelte";
 
 	let bgX = $state(50);
 	let bgY = $state(50);
@@ -74,6 +75,8 @@
 <MusicPlay id="derifer" songName="Derifér" color="cyan" />
 <MusicPlay id="konvolication" songName="Konvolication" color="blue" />
 <MusicPlay id="kicove" songName="Kicove" color="green" />
+
+<LightShow src="/shows/genDubV2/show.json" songName="genDub V2" color="#ff6b6b" />
 
 <FlashWash
 	channel="stab"

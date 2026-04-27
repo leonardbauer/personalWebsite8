@@ -1,0 +1,216 @@
+{
+  "showName": "genDub",
+  "bpm": 125,
+  "audio": "genDub.wav",
+  "channels": [
+    {
+      "name": "dutdutdut",
+      "midi": "dutdutdut.mid",
+      "color": "#00eed2",
+      "noteColors": {},
+      "maxOpacity": 1,
+      "adsr": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 1,
+        "release": 0.22
+      },
+      "offset": 0,
+      "effect": "bloom",
+      "strobeSubdivisions": 4,
+      "automations": {}
+    },
+    {
+      "name": "fx1",
+      "midi": "FX1.mid",
+      "color": "#7df9ff",
+      "noteColors": {},
+      "maxOpacity": 0.4,
+      "adsr": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 0,
+        "release": 0.11
+      },
+      "offset": 0,
+      "effect": "strobe",
+      "strobeSubdivisions": 0.25,
+      "automations": {
+        "strobeSubdivisions": {
+          "enabled": true,
+          "breakpoints": [
+            {
+              "time": 0,
+              "value": 0.25,
+              "curve": "linear"
+            },
+            {
+              "time": 180.8549494949495,
+              "value": 0.25,
+              "curve": "linear"
+            },
+            {
+              "time": 184.55272727272728,
+              "value": 16,
+              "curve": "linear"
+            },
+            {
+              "time": 399.36,
+              "value": 0.25,
+              "curve": "linear"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "dub-chords",
+      "midi": "Dub Chords.mid",
+      "color": "#2377ca",
+      "noteColors": {},
+      "maxOpacity": 0.1,
+      "adsr": {
+        "attack": 0.48,
+        "decay": 0,
+        "sustain": 0,
+        "release": 1.39
+      },
+      "offset": 0,
+      "effect": "bloom",
+      "strobeSubdivisions": 4,
+      "automations": {}
+    },
+    {
+      "name": "perc",
+      "midi": "Perc.mid",
+      "color": "#a64dff",
+      "noteColors": {},
+      "maxOpacity": 0.6,
+      "adsr": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 1,
+        "release": 0.4
+      },
+      "offset": 0,
+      "effect": "flash",
+      "strobeSubdivisions": 4,
+      "automations": {}
+    },
+    {
+      "name": "stab-light",
+      "midi": "Stab Light.mid",
+      "color": "#ff6b00",
+      "noteColors": {},
+      "maxOpacity": 0.6,
+      "adsr": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 1,
+        "release": 0.4
+      },
+      "offset": 0,
+      "effect": "flash",
+      "strobeSubdivisions": 4,
+      "automations": {}
+    },
+    {
+      "name": "chords-shallow",
+      "midi": "Chords Shallow.mid",
+      "color": "#00ffaa",
+      "noteColors": {},
+      "maxOpacity": 0.6,
+      "adsr": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 1,
+        "release": 0.4
+      },
+      "offset": 0,
+      "effect": "flash",
+      "strobeSubdivisions": 4,
+      "automations": {}
+    },
+    {
+      "name": "chords-deep ",
+      "midi": "Chords Deep.mid",
+      "color": "#9f8eff",
+      "noteColors": {
+        "E4": "#ff00f2",
+        "D5": "#00ffea",
+        "B4": "#00ff69",
+        "F#3": "#ffdc50",
+        "A3": "#ff0000",
+        "A4": "#ff00dd",
+        "C4": "#00daff",
+        "G4": "#ae51ff",
+        "D4": "#1d11ff",
+        "F#4": "#9ecbff",
+        "B5": "#deff62",
+        "G5": "#007cff"
+      },
+      "maxOpacity": 1,
+      "adsr": {
+        "attack": 0.11,
+        "decay": 0.28,
+        "sustain": 0.9,
+        "release": 4
+      },
+      "offset": 0,
+      "effect": "bloom",
+      "strobeSubdivisions": 4,
+      "automations": {}
+    },
+    {
+      "name": "perc-groove",
+      "midi": "Perc Groove.mid",
+      "color": "#ff4040",
+      "noteColors": {},
+      "maxOpacity": 0.6,
+      "adsr": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 1,
+        "release": 0.4
+      },
+      "offset": 0,
+      "effect": "flash",
+      "strobeSubdivisions": 4,
+      "automations": {}
+    },
+    {
+      "name": "drop-2",
+      "midi": "Drop 2.mid",
+      "color": "#ff00aa",
+      "noteColors": {},
+      "maxOpacity": 1,
+      "adsr": {
+        "attack": 0,
+        "decay": 0.43,
+        "sustain": 1,
+        "release": 0
+      },
+      "offset": 0,
+      "effect": "bloom",
+      "strobeSubdivisions": 4,
+      "automations": {}
+    },
+    {
+      "name": "drop1-flash",
+      "midi": "Drop1 Flash.mid",
+      "color": "#7df9ff",
+      "noteColors": {},
+      "maxOpacity": 1,
+      "adsr": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 1,
+        "release": 0
+      },
+      "offset": 0,
+      "effect": "flash",
+      "strobeSubdivisions": 4,
+      "automations": {}
+    }
+  ]
+}

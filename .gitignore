@@ -27,3 +27,8 @@ vite.config.ts.timestamp-*
 *.db
 src/lib/assets/genDub.wav
 .claude/
+static/shows/*/*.wav
+static/shows/*/*.mp3
+static/shows/*/*.m4a
+static/shows/*/*.opus
+scripts/shows/

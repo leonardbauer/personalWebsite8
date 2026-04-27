@@ -40,7 +40,9 @@
 		"@iconify/svelte": "^5.2.1",
 		"@neondatabase/serverless": "^1.0.2",
 		"@tonejs/midi": "^2.0.28",
+		"jszip": "^3.10.1",
 		"marked": "^17.0.3",
-		"posthog-js": "^1.364.2"
+		"posthog-js": "^1.364.2",
+		"typegpu": "^0.11.2"
 	}
 }

@@ -102,8 +102,10 @@ export type StudioConfig = {
 		color: string;
 		noteColors?: Record<string, string>;
 		maxOpacity: number;
-		decay: number;
+		decay?: number;
+		adsr?: { attack: number; decay: number; sustain: number; release: number };
 		offset: number;
+		effect?: string;
 	}>;
 	audioKey: string | null;
 	midiKeys: string[];
