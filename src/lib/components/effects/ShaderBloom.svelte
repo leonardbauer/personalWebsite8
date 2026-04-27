@@ -229,6 +229,7 @@
 				};
 				if (blooms.length >= MAX_BLOOMS) blooms.shift();
 				blooms.push(next);
+				if (rafId === null) rafId = requestAnimationFrame(frame);
 			});
 
 			const rawBindGroup = root.unwrap(bindGroup);
@@ -241,7 +242,10 @@
 			const bloomsArr = new Float32Array(MAX_BLOOMS * FLOATS_PER_BLOOM);
 
 			function frame() {
-				if (stop || !canvas) return;
+				if (stop || !canvas) {
+					rafId = null;
+					return;
+				}
 				const now = performance.now() / 1000;
 				for (let i = blooms.length - 1; i >= 0; i--) {
 					const elapsed = now - blooms[i].startedAt;
@@ -249,6 +253,10 @@
 				}
 
 				const count = Math.min(blooms.length, MAX_BLOOMS);
+				if (count === 0) {
+					rafId = null;
+					return;
+				}
 				bloomsArr.fill(0);
 				for (let i = 0; i < count; i++) {
 					const b = blooms[i];
@@ -293,7 +301,6 @@
 
 				rafId = requestAnimationFrame(frame);
 			}
-			rafId = requestAnimationFrame(frame);
 		})().catch((e) => {
 			console.warn("[ShaderBloom] init failed", e);
 			supported = false;

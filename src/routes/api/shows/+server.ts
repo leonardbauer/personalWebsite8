@@ -1,3 +1,4 @@
+import { json } from "@sveltejs/kit";
 import { listKeys, fetchKeyText } from "$lib/server/r2";
 
 type ShowMeta = {
@@ -20,22 +21,24 @@ type ShowJson = {
 	channels?: unknown[];
 };
 
-async function loadShows(): Promise<ShowMeta[]> {
+export async function GET() {
 	let keys: string[];
 	try {
 		keys = await listKeys("shows/");
 	} catch (e) {
-		console.warn("[music load] R2 list failed (likely env not set):", e);
-		return [];
+		console.error("[api/shows] list failed", e);
+		return json({ shows: [] satisfies ShowMeta[] });
 	}
+
 	const showJsonKeys = keys.filter((k) => /^shows\/[^/]+\/show\.json$/.test(k));
-	const out: ShowMeta[] = [];
+
+	const shows: ShowMeta[] = [];
 	for (const key of showJsonKeys) {
 		const name = key.split("/")[1];
 		try {
 			const raw = await fetchKeyText(key);
 			const data = JSON.parse(raw) as ShowJson;
-			out.push({
+			shows.push({
 				name,
 				title: data.title ?? data.showName ?? name,
 				artist: data.artist ?? null,
@@ -45,16 +48,14 @@ async function loadShows(): Promise<ShowMeta[]> {
 				tags: data.tags ?? []
 			});
 		} catch (e) {
-			console.warn(`[music load] skipping ${key}`, e);
+			console.warn(`[api/shows] skipping ${key}`, e);
 		}
 	}
-	out.sort((a, b) => {
+
+	shows.sort((a, b) => {
 		if (a.addedAt && b.addedAt) return b.addedAt.localeCompare(a.addedAt);
 		return a.title.localeCompare(b.title);
 	});
-	return out;
-}
 
-export async function load() {
-	return { title: "Music", shows: await loadShows() };
+	return json({ shows });
 }

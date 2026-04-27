@@ -32,20 +32,8 @@
 
 	onMount(() => {
 		const allowed = note ? (Array.isArray(note) ? note : [note]) : null;
-
-		const off = lightshow.subscribe((trigger) => {
-			if (trigger.channel !== channel) return;
-			if (allowed && !allowed.includes(trigger.event.noteName)) return;
-			active.push({
-				startedAt: performance.now() / 1000,
-				hold: trigger.event.duration,
-				velocity: trigger.event.velocity,
-				color: colors[trigger.event.noteName] ?? defaultColor
-			});
-			if (active.length > 32) active.shift();
-		});
-
 		let rafId: number | null = null;
+
 		function tick() {
 			if (!el) {
 				rafId = requestAnimationFrame(tick);
@@ -71,9 +59,30 @@
 
 			el.style.opacity = String(bestValue * maxOpacity);
 			el.style.backgroundColor = bestColor;
+
+			if (active.length === 0) {
+				rafId = null;
+				return;
+			}
 			rafId = requestAnimationFrame(tick);
 		}
-		tick();
+
+		function ensureRunning() {
+			if (rafId === null) rafId = requestAnimationFrame(tick);
+		}
+
+		const off = lightshow.subscribe((trigger) => {
+			if (trigger.channel !== channel) return;
+			if (allowed && !allowed.includes(trigger.event.noteName)) return;
+			active.push({
+				startedAt: performance.now() / 1000,
+				hold: trigger.event.duration,
+				velocity: trigger.event.velocity,
+				color: colors[trigger.event.noteName] ?? defaultColor
+			});
+			if (active.length > 32) active.shift();
+			ensureRunning();
+		});
 
 		return () => {
 			off();

@@ -6,6 +6,7 @@
 	let {
 		id = "konvolication",
 		songName = "Konvolication Pfharmer",
+		meta = null,
 		color = "#ff6b6b",
 		src = genDub,
 		bpm = null,
@@ -75,7 +76,7 @@
 
 	<div class="w-full flex-col">
 		<div>
-			{songName}
+			{songName}{#if meta}<span class="meta">{meta}</span>{/if}
 		</div>
 		<div
 			bind:this={trackEl}
@@ -101,5 +102,10 @@
 <style>
 	.song-progress-fill {
 		transition: width linear;
+	}
+	.meta {
+		color: #888;
+		margin-left: 0.5em;
+		font-size: 0.85em;
 	}
 </style>

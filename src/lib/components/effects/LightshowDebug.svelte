@@ -16,14 +16,11 @@
 	});
 
 	let now = $state(performance.now());
-	let rafId: number;
 	$effect(() => {
-		const tick = () => {
+		const id = setInterval(() => {
 			now = performance.now();
-			rafId = requestAnimationFrame(tick);
-		};
-		rafId = requestAnimationFrame(tick);
-		return () => cancelAnimationFrame(rafId);
+		}, 250);
+		return () => clearInterval(id);
 	});
 
 	function fmt(t: number): string {

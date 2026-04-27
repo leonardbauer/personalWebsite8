@@ -41,12 +41,18 @@
 
 	const baseUrl = $derived(src.replace(/\/[^/]+$/, ""));
 	const playerId = $derived(show ? `show:${show.showName}` : "");
-	const audioUrl = $derived(show ? `${baseUrl}/${show.audio}` : "");
+
+	function resolveUrl(value: string, kind: "audio" | "midi") {
+		if (/^https?:\/\//.test(value)) return value;
+		return kind === "midi" ? `${baseUrl}/midi/${value}` : `${baseUrl}/${value}`;
+	}
+
+	const audioUrl = $derived(show ? resolveUrl(show.audio, "audio") : "");
 	const midiEntries = $derived(
 		show
 			? show.channels
 					.filter((c) => c.midi)
-					.map((c) => ({ url: `${baseUrl}/midi/${c.midi}`, name: c.name }))
+					.map((c) => ({ url: resolveUrl(c.midi as string, "midi"), name: c.name }))
 			: []
 	);
 	const midiOffsets = $derived.by(() => {
@@ -71,6 +77,7 @@
 	<MusicPlay
 		id={playerId}
 		songName={songName ?? show.showName}
+		meta={show.bpm ? `${show.bpm} BPM` : null}
 		{color}
 		src={audioUrl}
 		midi={midiEntries}

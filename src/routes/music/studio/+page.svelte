@@ -646,7 +646,12 @@
 		const showName = audioFile?.name?.replace(/\.[^.]+$/, "") ?? "show";
 		return {
 			showName,
+			title: showName,
+			artist: null as string | null,
 			bpm,
+			addedAt: new Date().toISOString().slice(0, 10),
+			tags: [] as string[],
+			duration: player.duration || null,
 			audio: audioFile?.name ?? null,
 			channels: channels.map((c, i) => ({
 				name: c.name,
@@ -661,6 +666,104 @@
 				automations: c.automations
 			}))
 		};
+	}
+
+	let importInputEl: HTMLInputElement | undefined = $state();
+
+	async function importShowZip(file: File) {
+		try {
+			const zip = await JSZip.loadAsync(file);
+			let showJsonEntry: { name: string; entry: typeof zip.files[string] } | null = null;
+			let audioEntry: { name: string; entry: typeof zip.files[string] } | null = null;
+			const midiEntries: Array<{ name: string; entry: typeof zip.files[string] }> = [];
+
+			zip.forEach((relPath, entry) => {
+				if (entry.dir) return;
+				const lower = relPath.toLowerCase();
+				const baseName = relPath.split("/").pop() ?? relPath;
+				if (lower.endsWith("show.json")) {
+					showJsonEntry = { name: baseName, entry };
+				} else if (/\.(midi?)$/i.test(lower)) {
+					midiEntries.push({ name: baseName, entry });
+				} else if (/\.(wav|mp3|m4a|aac|opus|ogg|flac)$/i.test(lower)) {
+					audioEntry = { name: baseName, entry };
+				}
+			});
+
+			if (!showJsonEntry) {
+				alert("No show.json found in zip");
+				return;
+			}
+			const text = await showJsonEntry.entry.async("text");
+			const cfg = JSON.parse(text);
+
+			let restoredAudio: File | null = null;
+			if (audioEntry) {
+				const blob = await audioEntry.entry.async("blob");
+				restoredAudio = new File([blob], audioEntry.name);
+			}
+
+			const midiByName = new Map(midiEntries.map((m) => [m.name, m.entry]));
+			const channelsCfg = (cfg.channels ?? []) as Array<
+				ChannelConfig & { fileName?: string; midi?: string | null }
+			>;
+
+			const matchedChannels: Array<typeof channelsCfg[number]> = [];
+			const restoredMidi: File[] = [];
+			for (const c of channelsCfg) {
+				if (!c.midi) continue;
+				const entry = midiByName.get(c.midi);
+				if (!entry) {
+					console.warn("[studio] midi not in zip", c.midi);
+					continue;
+				}
+				const blob = await entry.async("blob");
+				restoredMidi.push(new File([blob], c.midi));
+				matchedChannels.push(c);
+			}
+
+			if (player.current === PREVIEW_ID) await player.toggle(PREVIEW_ID);
+
+			const builtChannels = matchedChannels.map((c, i) => ({
+				fileName: restoredMidi[i].name,
+				name: c.name ?? makeDefaultName(restoredMidi[i].name),
+				color: c.color ?? PALETTE[i % PALETTE.length],
+				noteColors: c.noteColors ?? {},
+				maxOpacity: c.maxOpacity ?? 0.6,
+				adsr: c.adsr ?? { ...DEFAULT_ADSR },
+				offset: c.offset ?? 0,
+				effect: c.effect ?? "flash",
+				strobeSubdivisions: c.strobeSubdivisions ?? 4,
+				automations: c.automations ?? {},
+				expanded: false
+			}));
+
+			console.log("[studio] import: channels", builtChannels.map((c, i) => `${i}:${c.name}<-${c.fileName}`));
+			console.log("[studio] import: midi files order", restoredMidi.map((f) => f.name));
+
+			// Set channels FIRST so refreshChannels' existing-map uses the imported data
+			channels = builtChannels;
+			audioFile = restoredAudio;
+			bpm = cfg.bpm ?? 125;
+			midiFiles = restoredMidi;
+
+			// Wait for the midi-files effect to fire refreshChannels and settle, then
+			// re-assert channels in case refreshChannels overwrote with defaults.
+			await new Promise((r) => setTimeout(r, 50));
+			channels = builtChannels.map((c) => ({ ...c }));
+
+			selectedChannel = null;
+			console.log(
+				"[studio] imported show",
+				cfg.showName ?? cfg.title ?? "(unnamed)",
+				"with",
+				builtChannels.length,
+				"channels"
+			);
+		} catch (e) {
+			console.error("[studio] import failed", e);
+			alert("Import failed: " + (e instanceof Error ? e.message : String(e)));
+		}
 	}
 
 	async function exportShowZip() {
@@ -760,6 +863,18 @@ The \`<LightShow>\` component is in \`src/lib/components/effects/LightShow.svelt
 			<button onclick={play} disabled={!audioFile || !midiFiles.length || player.loading === PREVIEW_ID}>
 				{#if player.loading === PREVIEW_ID}loading…{:else if isPlaying}pause{:else}play{/if}
 			</button>
+			<button onclick={() => importInputEl?.click()}>import zip</button>
+			<input
+				bind:this={importInputEl}
+				type="file"
+				accept=".zip"
+				style="display: none"
+				onchange={(e) => {
+					const f = (e.currentTarget as HTMLInputElement).files?.[0];
+					if (f) importShowZip(f);
+					(e.currentTarget as HTMLInputElement).value = "";
+				}}
+			/>
 			<button onclick={exportShowZip} disabled={!channels.length || !audioFile}>export zip</button>
 			<button onclick={exportConfig} disabled={!channels.length}>copy json</button>
 			<button onclick={clearProject} class="danger">clear</button>

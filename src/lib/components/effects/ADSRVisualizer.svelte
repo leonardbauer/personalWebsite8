@@ -23,17 +23,28 @@
 	let now = $state(performance.now() / 1000);
 
 	onMount(() => {
+		let rafId: number | null = null;
+
+		function tick() {
+			now = performance.now() / 1000;
+			if (lastTriggerTime === null) {
+				rafId = null;
+				return;
+			}
+			const elapsed = now - lastTriggerTime;
+			if (elapsed > totalDuration) {
+				lastTriggerTime = null;
+				rafId = null;
+				return;
+			}
+			rafId = requestAnimationFrame(tick);
+		}
+
 		const off = lightshow.subscribe((trigger) => {
 			if (channel && trigger.channel !== channel) return;
 			lastTriggerTime = performance.now() / 1000;
+			if (rafId === null) rafId = requestAnimationFrame(tick);
 		});
-
-		let rafId: number | null = null;
-		function tick() {
-			now = performance.now() / 1000;
-			rafId = requestAnimationFrame(tick);
-		}
-		tick();
 
 		return () => {
 			off();

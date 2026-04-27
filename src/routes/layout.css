@@ -19,6 +19,17 @@ html {
 	transition: background-color 0.3s;
 }
 
+body.force-dark-music {
+	--color-background: #121212;
+	--color-background-secondary: #1e1e1e;
+	--color-text: #ffffff;
+	--color-text-inverted: #000000;
+	--color-text-muted: #999999;
+	--color-border: #333333;
+	--color-shadow: rgba(0, 0, 0, 0.5);
+	--color-code-background: rgba(255, 255, 255, 0.1);
+}
+
 .dropshadow {
 	filter: drop-shadow(1px 1px 3px var(--color-shadow));
 }

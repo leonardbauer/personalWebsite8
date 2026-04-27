@@ -22,17 +22,8 @@
 	let active: Active[] = [];
 
 	onMount(() => {
-		const off = lightshow.subscribe((trigger) => {
-			if (trigger.channel !== channel) return;
-			active.push({
-				startedAt: performance.now() / 1000,
-				hold: trigger.event.duration,
-				velocity: trigger.event.velocity
-			});
-			if (active.length > 32) active.shift();
-		});
-
 		let rafId: number | null = null;
+
 		function tick() {
 			if (!el) {
 				rafId = requestAnimationFrame(tick);
@@ -57,9 +48,28 @@
 				}
 			}
 			el.style.opacity = String(bestValue * 0.9);
+
+			if (active.length === 0) {
+				rafId = null;
+				return;
+			}
 			rafId = requestAnimationFrame(tick);
 		}
-		tick();
+
+		function ensureRunning() {
+			if (rafId === null) rafId = requestAnimationFrame(tick);
+		}
+
+		const off = lightshow.subscribe((trigger) => {
+			if (trigger.channel !== channel) return;
+			active.push({
+				startedAt: performance.now() / 1000,
+				hold: trigger.event.duration,
+				velocity: trigger.event.velocity
+			});
+			if (active.length > 32) active.shift();
+			ensureRunning();
+		});
 
 		return () => {
 			off();

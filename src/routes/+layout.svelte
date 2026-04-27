@@ -22,7 +22,7 @@
 		bgY = 25 + y * 0.5;
 	}
 
-	const CELL = 50;
+	const CELL = 100;
 	let cols = $state(0);
 	let cells = $state<Array<{ delay: number; duration: number }>>([]);
 
@@ -31,7 +31,7 @@
 		const rows = Math.ceil(window.innerHeight / CELL);
 		cells = Array.from({ length: cols * rows }, () => ({
 			delay: -Math.random() * 8,
-			duration: 4 + Math.random() * 6
+			duration: 6 + Math.random() * 8
 		}));
 	}
 
@@ -68,7 +68,7 @@
 		class="page-bg"
 		style="background-image: url({background}); background-position: {bgX}% {bgY}%;"
 	></div>
-	<div class="pixel-grid" style="grid-template-columns: repeat({cols}, 50px);">
+	<div class="pixel-grid" style="grid-template-columns: repeat({cols}, 100px);">
 		{#each cells as cell, i (i)}
 			<div
 				class="pixel"
@@ -79,7 +79,7 @@
 {/if}
 <div
 	class="lg:px-30 sm:px-10 px-5 items-center pt-[50px] overflow-clip transition-colors duration-300"
-	style="color: {$currentTheme.text}; min-height: 100vh;"
+	style="color: {$page.url.pathname.startsWith('/music') ? '#ffffff' : $currentTheme.text}; min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto;"
 >
 	{#if !$page.url.pathname.startsWith('/music/studio')}
 		<div class="flex items-center justify-center w-full h-[50px] mb-[50px]">
@@ -104,12 +104,13 @@
 		{@render children()}
 	</div>
 	{#if !$page.url.pathname.startsWith('/music/studio')}
-	<div class="mt-10 border-t-2 p-5 flex justify-between items-end" style="border-color: {$currentTheme.border};">
+	{@const onMusic = $page.url.pathname.startsWith('/music')}
+	<div class="mt-10 border-t-2 p-5 flex justify-between items-end" style="border-color: {onMusic ? '#333333' : $currentTheme.border};">
 		<div class="text-2xl/7 line">leonard<br />bauer</div>
 		<button
 			onclick={toggleTheme}
 			class="p-2 rounded-full hover:opacity-70 transition-opacity"
-			style="background-color: {$currentTheme.backgroundSecondary};"
+			style="background-color: {onMusic ? '#1e1e1e' : $currentTheme.backgroundSecondary}; color: {onMusic ? '#ffffff' : $currentTheme.text};"
 			aria-label="Toggle theme"
 		>
 			{#if $themeName === 'dark' || ($themeName === 'system' && $currentTheme.name === 'Dark')}
@@ -135,7 +136,7 @@
 		position: fixed;
 		inset: 0;
 		display: grid;
-		grid-auto-rows: 50px;
+		grid-auto-rows: 100px;
 		pointer-events: none;
 		z-index: -1;
 		overflow: hidden;
@@ -144,6 +145,7 @@
 		background-color: black;
 		opacity: 0.7;
 		animation: flicker infinite ease-in-out;
+		will-change: opacity;
 	}
 	@keyframes flicker {
 		0%, 75%, 100% { opacity: 0.7; }

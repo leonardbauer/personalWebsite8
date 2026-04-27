@@ -35,6 +35,8 @@
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.1037.0",
+		"@aws-sdk/s3-request-presigner": "^3.1037.0",
 		"@iconify-json/lucide": "^1.2.94",
 		"@iconify-json/simple-icons": "^1.2.71",
 		"@iconify/svelte": "^5.2.1",

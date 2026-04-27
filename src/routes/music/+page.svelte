@@ -7,12 +7,13 @@
 	import { pageStyle } from "$lib/stores/pageStyle";
 	import { player } from "$lib/stores/player.svelte";
 	import { onMount, onDestroy } from "svelte";
-    import MusicPlay from "./MusicPlay.svelte";
-    import FlashWash from "$lib/components/effects/FlashWash.svelte";
-    import LightshowDebug from "$lib/components/effects/LightshowDebug.svelte";
-    import Timeline from "$lib/components/effects/Timeline.svelte";
-    import LightShow from "$lib/components/effects/LightShow.svelte";
+	import MusicPlay from "./MusicPlay.svelte";
+	import FlashWash from "$lib/components/effects/FlashWash.svelte";
+	import LightShow from "$lib/components/effects/LightShow.svelte";
+	import LightshowDebug from "$lib/components/effects/LightshowDebug.svelte";
+	import Timeline from "$lib/components/effects/Timeline.svelte";
 
+	let { data } = $props();
 	let bgX = $state(50);
 	let bgY = $state(50);
 
@@ -37,19 +38,16 @@
 	}
 
 	onMount(() => {
-		pageStyle.set({
-			backgroundColor: "#1a1a2e",
-			textColor: "#ffffff",
-		});
+		pageStyle.set({ backgroundColor: "#1a1a2e", textColor: "#ffffff" });
+		document.body.classList.add("force-dark-music");
 		window.addEventListener("keydown", handleKeydown, { capture: true, passive: false });
 		return () => window.removeEventListener("keydown", handleKeydown, { capture: true });
 	});
 
 	onDestroy(() => {
-		pageStyle.set({
-			backgroundColor: "#ffffff",
-			textColor: "#000000",
-		});
+		if (typeof document === "undefined") return;
+		pageStyle.set({ backgroundColor: "#ffffff", textColor: "#000000" });
+		document.body.classList.remove("force-dark-music");
 	});
 </script>
 
@@ -63,44 +61,46 @@
 </h1>
 
 <div class="mt-[50px]"></div>
-<MusicPlay
-	id="genDub"
-	songName="genDub"
-	color="#ff6b6b"
-	src={genDub}
-	midi={[stabMidi, kickMidi, drop1Midi]}
-	midiOffsets={{}}
-	bpm={125}
-/>
-<MusicPlay id="derifer" songName="Derifér" color="cyan" />
-<MusicPlay id="konvolication" songName="Konvolication" color="blue" />
-<MusicPlay id="kicove" songName="Kicove" color="green" />
+<!-- <MusicPlay -->
+<!-- 	id="genDub" -->
+<!-- 	songName="genDub" -->
+<!-- 	color="#ff6b6b" -->
+<!-- 	src={genDub} -->
+<!-- 	midi={[stabMidi, kickMidi, drop1Midi]} -->
+<!-- 	midiOffsets={{}} -->
+<!-- 	bpm={125} -->
+<!-- /> -->
+<!-- <MusicPlay id="derifer" songName="Derifér" color="cyan" /> -->
+<!-- <MusicPlay id="konvolication" songName="Konvolication" color="blue" /> -->
+<!-- <MusicPlay id="kicove" songName="Kicove" color="green" /> -->
+<!---->
+<!-- <FlashWash -->
+<!-- 	channel="stab" -->
+<!-- 	defaultColor="#ff00aa" -->
+<!-- 	colors={{ -->
+<!-- 		A3: "#ff00aa", -->
+<!-- 		A5: "#00ffaa", -->
+<!-- 		C4: "#ffd400", -->
+<!-- 		D4: "#00d4ff", -->
+<!-- 		E4: "#a64dff", -->
+<!-- 		F4: "#ff6b00", -->
+<!-- 		G3: "#ffffff" -->
+<!-- 	}} -->
+<!-- /> -->
+<!-- <FlashWash channel="kick" defaultColor="#ffffff" maxOpacity={0.7} /> -->
+<!-- <FlashWash channel="drop1" defaultColor="#ffffff" maxOpacity={1} /> -->
 
-<LightShow src="/shows/genDubV2/show.json" songName="genDub V2" color="#ff6b6b" />
-
-<FlashWash
-	channel="stab"
-	defaultColor="#ff00aa"
-	colors={{
-		A3: "#ff00aa",
-		A5: "#00ffaa",
-		C4: "#ffd400",
-		D4: "#00d4ff",
-		E4: "#a64dff",
-		F4: "#ff6b00",
-		G3: "#ffffff"
-	}}
-/>
-<FlashWash channel="kick" defaultColor="#ffffff" maxOpacity={0.7} decay={120} />
-<FlashWash channel="drop1" defaultColor="#ffffff" maxOpacity={1} decay={800} />
-
-<div class="mt-6 hidden md:block">
-	<Timeline width={1200} height={240} />
-</div>
-
-<div class="hidden md:block">
-	<LightshowDebug />
-</div>
+{#if data?.shows}
+	{#each data.shows as s (s.name)}
+		<LightShow src="/api/shows/{s.name}" songName={s.title} color="#ff6b6b" />
+		{#if s.artist || s.tags.length}
+			<div class="show-meta">
+				{#if s.artist}<span>{s.artist}</span>{/if}
+				{#each s.tags as tag (tag)}<span class="tag">{tag}</span>{/each}
+			</div>
+		{/if}
+	{/each}
+{/if}
 
 <style>
 	.title {
@@ -121,5 +121,19 @@
 		.title:hover {
 			transform: scale(1.2) translateX(clamp(0px, 8vw, 120px));
 		}
+	}
+	.show-meta {
+		display: flex;
+		gap: 8px;
+		font-size: 11px;
+		opacity: 0.6;
+		font-family: ui-monospace, monospace;
+		margin: 4px 0 12px 56px;
+	}
+	.show-meta .tag {
+		background: rgba(255, 255, 255, 0.08);
+		padding: 1px 6px;
+		border-radius: 999px;
+		font-size: 10px;
 	}
 </style>
