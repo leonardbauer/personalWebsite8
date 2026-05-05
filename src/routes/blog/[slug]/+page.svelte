@@ -3,7 +3,7 @@
 	import { currentTheme } from '$lib/stores/theme';
 	import { page } from '$app/stores';
 	import Icon from '@iconify/svelte/dist/OfflineIcon.svelte';
-	import { xIcon, linkedinIcon, linkIcon } from '$lib/icons';
+	import { xIcon, linkedinIcon, linkIcon, rssIcon } from '$lib/icons';
 
 	let { data } = $props();
 
@@ -87,6 +87,13 @@
 			>
 				<Icon icon={linkIcon} width={20} />
 			</button>
+			<a
+				href="/posts.atom"
+				class="hover:opacity-70 transition-opacity"
+				aria-label="Subscribe via RSS"
+			>
+				<Icon icon={rssIcon} width={20} />
+			</a>
 		</div>
 	</div>
 	<div class="flex gap-8 mt-6">
@@ -120,6 +127,13 @@
 			>
 				<Icon icon={linkIcon} width={24} />
 			</button>
+			<a
+				href="/posts.atom"
+				class="hover:opacity-70 transition-opacity"
+				aria-label="Subscribe via RSS"
+			>
+				<Icon icon={rssIcon} width={24} />
+			</a>
 		</aside>
 	</div>
 </article>
@@ -151,6 +165,13 @@
 	>
 		<Icon icon={linkIcon} width={24} />
 	</button>
+	<a
+		href="/posts.atom"
+		class="hover:opacity-70 transition-opacity"
+		aria-label="Subscribe via RSS"
+	>
+		<Icon icon={rssIcon} width={24} />
+	</a>
 </div>
 
 <style>

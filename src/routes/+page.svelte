@@ -6,6 +6,7 @@
 		githubIcon,
 		bandcampIcon,
 		soundcloudIcon,
+		rssIcon,
 	} from "$lib/icons";
 	import { currentTheme } from "$lib/stores/theme";
 
@@ -85,6 +86,12 @@
 			href="https://soundcloud.com/pfharmer"
 			class="hover:text-[#FF5500]"
 			><Icon width="32" icon={soundcloudIcon} />
+		</a>
+		<a
+			href="/posts.atom"
+			aria-label="RSS feed"
+			class="hover:text-[#FF6600]"
+			><Icon width="32" icon={rssIcon} />
 		</a>
 	</div>
 </div>
