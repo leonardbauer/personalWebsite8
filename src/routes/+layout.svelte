@@ -82,14 +82,17 @@
 	style="color: {$page.url.pathname.startsWith('/music') ? '#ffffff' : $currentTheme.text}; min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto;"
 >
 	{#if !$page.url.pathname.startsWith('/music/studio')}
-		<div class="flex items-center justify-center w-full h-[50px] mb-[50px]">
+		<div
+			class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center h-[50px] lg:px-30 sm:px-10 px-5 backdrop-blur-md transition-colors duration-300"
+			style="background-color: {$page.url.pathname.startsWith('/music') ? 'rgba(0,0,0,0.4)' : `${$currentTheme.background}cc`}; color: {$page.url.pathname.startsWith('/music') ? '#ffffff' : $currentTheme.text};"
+		>
 			<nav class="flex justify-evenly w-full">
 				<a href="/" class:active={$page.url.pathname == "/"}
 					>blog</a
 				>
 				<a
 					href="/projects"
-					class:active={$page.url.pathname == "/projects"}
+					class:active={$page.url.pathname.startsWith("/projects")}
 					>projects</a
 				>
 				<a
@@ -99,6 +102,7 @@
 				>
 			</nav>
 		</div>
+		<div class="h-[100px] w-full" aria-hidden="true"></div>
 	{/if}
 	<div>
 		{@render children()}

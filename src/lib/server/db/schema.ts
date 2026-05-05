@@ -13,9 +13,18 @@ export const posts = pgTable('posts', {
 
 export const projects = pgTable('projects', {
 	id: uuid('id').primaryKey().defaultRandom(),
+	slug: text('slug').unique().notNull(),
 	image: text('image'),
 	title: text('title').notNull(),
-	content: text('content').notNull()
+	tagline: text('tagline'),
+	content: text('content').notNull(),
+	report: text('report'),
+	gallery: text('gallery').array().default([]).notNull(),
+	colorPrimary: text('color_primary').default('#1a1a1a').notNull(),
+	colorSecondary: text('color_secondary').default('#f5f5f5').notNull(),
+	colorAccent: text('color_accent').default('#ff6600').notNull(),
+	link: text('link'),
+	sortOrder: integer('sort_order').default(0).notNull()
 });
 
 export const songs = pgTable('songs', {
