@@ -77,6 +77,28 @@
 		{/each}
 	</div>
 {/if}
+{#if $page.url.pathname.startsWith('/projects')}
+	<div class="absolute top-[50px] left-0 right-0 z-50 lg:px-30 sm:px-10 px-5 pointer-events-none">
+		<div class="flex items-center justify-center w-full h-[50px] pointer-events-auto">
+			<nav class="flex justify-evenly w-full" style="color: var(--projects-fg, #ffffff);">
+				<a href="/" class:active={$page.url.pathname == "/"}>blog</a>
+				<a href="/projects" class:active={$page.url.pathname == "/projects"}>projects</a>
+				<a href="/music" class:active={$page.url.pathname == "/music"}>music</a>
+			</nav>
+		</div>
+	</div>
+	{@render children()}
+	{#if $page.url.pathname !== '/projects'}
+		<div class="lg:px-30 sm:px-10 px-5" style="color: var(--projects-fg, #ffffff);">
+			<div
+				class="mt-10 border-t-2 p-5 flex justify-between items-end"
+				style="border-color: var(--projects-fg, #ffffff);"
+			>
+				<div class="text-2xl/7 line">leonard<br />bauer</div>
+			</div>
+		</div>
+	{/if}
+{:else}
 <div
 	class="lg:px-30 sm:px-10 px-5 items-center pt-[50px] overflow-clip transition-colors duration-300"
 	style="color: {$page.url.pathname.startsWith('/music') ? '#ffffff' : $currentTheme.text}; min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto;"
@@ -107,21 +129,24 @@
 	{@const onMusic = $page.url.pathname.startsWith('/music')}
 	<div class="mt-10 border-t-2 p-5 flex justify-between items-end" style="border-color: {onMusic ? '#333333' : $currentTheme.border};">
 		<div class="text-2xl/7 line">leonard<br />bauer</div>
-		<button
-			onclick={toggleTheme}
-			class="p-2 rounded-full hover:opacity-70 transition-opacity"
-			style="background-color: {onMusic ? '#1e1e1e' : $currentTheme.backgroundSecondary}; color: {onMusic ? '#ffffff' : $currentTheme.text};"
-			aria-label="Toggle theme"
-		>
-			{#if $themeName === 'dark' || ($themeName === 'system' && $currentTheme.name === 'Dark')}
-				<Icon icon={sunIcon} width={20} />
-			{:else}
-				<Icon icon={moonIcon} width={20} />
-			{/if}
-		</button>
+		{#if !onMusic}
+			<button
+				onclick={toggleTheme}
+				class="p-2 rounded-full hover:opacity-70 transition-opacity"
+				style="background-color: {$currentTheme.backgroundSecondary}; color: {$currentTheme.text};"
+				aria-label="Toggle theme"
+			>
+				{#if $themeName === 'dark' || ($themeName === 'system' && $currentTheme.name === 'Dark')}
+					<Icon icon={sunIcon} width={20} />
+				{:else}
+					<Icon icon={moonIcon} width={20} />
+				{/if}
+			</button>
+		{/if}
 	</div>
 	{/if}
 </div>
+{/if}
 
 <style>
 	.page-bg {
