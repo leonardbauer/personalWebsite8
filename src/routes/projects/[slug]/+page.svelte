@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { GalleryImage } from "$lib/data/projects";
+	import type { EnhancedSrc, GalleryImage } from "$lib/data/projects";
 	let { data } = $props();
 	const project = $derived(data.project);
 	const galleryItems = $derived<(GalleryImage | null)[]>(
@@ -8,7 +8,7 @@
 			: [null, null],
 	);
 	const aboutSegments = $derived(parseAbout(project.about ?? ""));
-	let lightboxSrc = $state<string | null>(null);
+	let lightboxSrc = $state<EnhancedSrc | null>(null);
 
 	function parseAbout(text: string): Array<string | { tag: string }> {
 		const result: Array<string | { tag: string }> = [];
@@ -29,7 +29,7 @@
 		return project.gallery?.find((g) => g.tag === tag);
 	}
 
-	function openLightbox(src: string) {
+	function openLightbox(src: EnhancedSrc) {
 		lightboxSrc = src;
 	}
 	function closeLightbox() {
@@ -89,12 +89,12 @@
 	<div class="layout">
 		<header class="hdr">
 			{#if project.logo}
-				<img
-					class="logo-img"
-					class:logo={project.logoStyle === 'circle'}
-					class:logo-natural={project.logoStyle !== 'circle'}
+				<enhanced:img
+					class="logo-img {project.logoStyle === 'circle' ? 'logo' : 'logo-natural'}"
 					src={project.logo}
 					alt="{project.title} logo"
+					sizes="220px"
+					fetchpriority="high"
 				/>
 			{:else}
 				<div class="logo" aria-hidden="true"></div>
@@ -155,10 +155,12 @@
 								onclick={() => openLightbox(item.src)}
 								aria-label="View {item.title ?? `image ${i + 1}`}"
 							>
-								<img
+								<enhanced:img
 									class="gallery-item gallery-img"
 									src={item.src}
 									alt={item.title ?? ""}
+									sizes="(max-width: 800px) 100vw, 32vw"
+									loading={i === 0 ? "eager" : "lazy"}
 								/>
 							</button>
 							{#if item.title}
@@ -194,7 +196,7 @@
 		>
 			×
 		</button>
-		<img class="lightbox-img" src={lightboxSrc} alt="" />
+		<enhanced:img class="lightbox-img" src={lightboxSrc} alt="" sizes="95vw" />
 	</div>
 {/if}
 

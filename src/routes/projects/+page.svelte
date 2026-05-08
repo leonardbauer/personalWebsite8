@@ -176,16 +176,19 @@
 	>
 		{#each projects as p, panelIdx (p.slug)}
 			{@const carIdx = panelIdx === activeIdx ? carouselIdx : 0}
+			{@const eager = panelIdx === 0}
+			{@const carItem = p.gallery && p.gallery.length > 0 ? (p.gallery[carIdx] ?? p.gallery[0]) : null}
 			<section class="panel" style="background:{p.bg}; color:{p.fg};">
 				<div class="content">
 					<div class="left">
 						{#if p.logo}
-							<img
-								class="logo-img"
-								class:logo={p.logoStyle === 'circle'}
-								class:logo-natural={p.logoStyle !== 'circle'}
+							<enhanced:img
+								class="logo-img {p.logoStyle === 'circle' ? 'logo' : 'logo-natural'}"
 								src={p.logo}
 								alt="{p.title} logo"
+								sizes="220px"
+								loading={eager ? "eager" : "lazy"}
+								fetchpriority={eager ? "high" : "auto"}
 							/>
 						{:else}
 							<div class="logo" aria-hidden="true"></div>
@@ -205,11 +208,14 @@
 						>
 					</div>
 					<div class="right">
-						{#if p.gallery && p.gallery.length > 0}
-							<img
+						{#if p.gallery && p.gallery.length > 0 && carItem}
+							<enhanced:img
 								class="carousel carousel-img"
-								src={p.gallery[carIdx]?.src ?? p.gallery[0].src}
-								alt={p.gallery[carIdx]?.title ?? `${p.title} preview`}
+								src={carItem.src}
+								alt={carItem.title ?? `${p.title} preview`}
+								sizes="min(38vw, 560px)"
+								loading={eager ? "eager" : "lazy"}
+								fetchpriority={eager ? "high" : "auto"}
 							/>
 							<div class="dots" style="color: {p.accent ?? p.fg};">
 								{#each p.gallery as _, di (di)}
@@ -265,12 +271,12 @@
 			>
 				<div class="grid-tile-inner">
 					{#if p.logo}
-						<img
-							class="grid-tile-logo logo-img"
-							class:logo-natural={p.logoStyle !== 'circle'}
-							class:logo={p.logoStyle === 'circle'}
+						<enhanced:img
+							class="grid-tile-logo logo-img {p.logoStyle === 'circle' ? 'logo' : 'logo-natural'}"
 							src={p.logo}
 							alt=""
+							sizes="128px"
+							loading="lazy"
 						/>
 					{/if}
 					<h3

@@ -1,5 +1,18 @@
+// Logos render ~110px tall; screenshots span carousel (~560px) up to lightbox (~1920px).
+import sundainLogo from "$lib/assets/projects/sundain-logo.png?enhanced&w=440;220";
+import sundainChat from "$lib/assets/projects/sundain-chat.png?enhanced&w=1920;1120;560;320";
+import toughskillLogo from "$lib/assets/projects/toughskill-logo.png?enhanced&w=440;220";
+import toughskillPath from "$lib/assets/projects/ToughSkillPath.png?enhanced&w=1920;1120;560;320";
+import toughskillLesson from "$lib/assets/projects/ToughSkillLesson.png?enhanced&w=1920;1120;560;320";
+import toughskillAssignment from "$lib/assets/projects/ToughSkillAssignment.png?enhanced&w=1920;1120;560;320";
+import toughskillCloudy from "$lib/assets/projects/toughskill-cloudy.png?enhanced&w=1920;1120;560;320";
+import lightshowStudio from "$lib/assets/projects/lightshow-studio.png?enhanced&w=1920;1120;560;320";
+
+// vite-imagetools `?enhanced` returns a Picture object consumed by <enhanced:img>.
+export type EnhancedSrc = typeof sundainLogo;
+
 export type GalleryImage = {
-	src: string;
+	src: EnhancedSrc;
 	title?: string;
 	tag?: string;
 };
@@ -17,7 +30,7 @@ export type Project = {
 	bg: string;
 	fg: string;
 	accent?: string;
-	logo?: string;
+	logo?: EnhancedSrc;
 	logoStyle?: "circle" | "natural";
 	titleFont?: string;
 	gallery?: GalleryImage[];
@@ -34,12 +47,12 @@ export const projects: Project[] = [
 		bg: "#1a1a1a",
 		fg: "#ffffff",
 		accent: "#facc15",
-		logo: "/projects/sundain-logo.png",
+		logo: sundainLogo,
 		logoStyle: "circle",
 		titleFont: "'Caveat Brush', cursive",
 		gallery: [
 			{
-				src: "/projects/sundain-chat.png",
+				src: sundainChat,
 				title: "in-app chat",
 				tag: "chat",
 			},
@@ -58,26 +71,26 @@ export const projects: Project[] = [
 		bg: "#fafaf9",
 		fg: "#1a1a1a",
 		accent: "#14b8a6",
-		logo: "/projects/toughskill-logo.png",
+		logo: toughskillLogo,
 		titleFont: "'Gurajada', cursive",
 		gallery: [
 			{
-				src: "/projects/ToughSkillPath.png",
+				src: toughskillPath,
 				title: "learn path",
 				tag: "path",
 			},
 			{
-				src: "/projects/ToughSkillLesson.png",
+				src: toughskillLesson,
 				title: "lesson view",
 				tag: "lesson",
 			},
 			{
-				src: "/projects/ToughSkillAssignment.png",
+				src: toughskillAssignment,
 				title: "assignment",
 				tag: "assignment",
 			},
 			{
-				src: "/projects/toughskill-cloudy.png",
+				src: toughskillCloudy,
 				title: "cloudy",
 				tag: "cloudy",
 			},
@@ -102,7 +115,7 @@ export const projects: Project[] = [
 		accent: "#ec4899",
 		gallery: [
 			{
-				src: "/projects/lightshow-studio.png",
+				src: lightshowStudio,
 				title: "studio editor",
 				tag: "editor",
 			},
